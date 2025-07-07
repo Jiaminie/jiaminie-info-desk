@@ -1,0 +1,289 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  //directUrl         = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id @default(uuid()) 
+  email         String    @unique
+  name          String?
+  role          UserRole  @default(ADMIN)
+  avatar_url    String?
+  is_active     Boolean   @default(true)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  
+  services      Service[]
+  portfolio_items PortfolioItem[]
+  blog_posts    BlogPost[]
+  testimonials  Testimonial[]
+  
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+model Service {
+  id            String    @id @default(uuid())
+  name          String   
+  slug          String    @unique
+  description   String
+  short_desc    String?   
+  icon          String?   
+  image_url     String?  
+  price_range   String?   // e.g., "$500 - $2000"
+  duration      String?   // e.g., "2-4 weeks"
+  features      Json      // Array of feature strings
+  technologies  Json      // Array of tech stack used
+  is_featured   Boolean   @default(false)
+  is_active     Boolean   @default(true)
+  sort_order    Int       @default(0)
+  created_by    String
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  
+  // Relationships
+  creator       User      @relation(fields: [created_by], references: [id])
+  portfolio_items PortfolioItem[]
+  inquiries     Inquiry[]
+  
+  @@map("services")
+}
+
+// Portfolio/Case studies
+model PortfolioItem {
+  id            String    @id @default(uuid())
+  title         String
+  slug          String    @unique
+  description   String
+  short_desc    String?
+  client_name   String?
+  project_url   String?   // Live project URL
+  github_url    String?   // Repository URL
+  image_url     String?   // Main project image
+  gallery       Json?     // Array of image URLs
+  video_url     String?   // Demo video URL
+  technologies  Json      // Tech stack used
+  challenges    String?   // Challenges faced
+  solutions     String?   // Solutions implemented
+  results       String?   // Results achieved
+  service_id    String
+  is_featured   Boolean   @default(false)
+  is_active     Boolean   @default(true)
+  sort_order    Int       @default(0)
+  created_by    String
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  
+  // Relationships
+  service       Service   @relation(fields: [service_id], references: [id])
+  creator       User      @relation(fields: [created_by], references: [id])
+  
+  @@map("portfolio_items")
+}
+
+// Customer testimonials
+model Testimonial {
+  id            String    @id @default(uuid())
+  client_name   String
+  client_title  String?   // e.g., "CEO", "Marketing Director"
+  client_company String?
+  client_email  String?
+  client_photo  String?   // Client's photo URL
+  rating        Int       @default(5) // 1-5 stars
+  content       String    // Testimonial text
+  project_type  String?   // Type of project
+  is_featured   Boolean   @default(false)
+  is_active     Boolean   @default(true)
+  is_verified   Boolean   @default(false) // For authenticity
+  sort_order    Int       @default(0)
+  created_by    String
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  
+  // Relationships
+  creator       User      @relation(fields: [created_by], references: [id])
+  
+  @@map("testimonials")
+}
+
+// Company showcase videos
+model Video {
+  id            String    @id @default(uuid())
+  title         String
+  description   String?
+  video_url     String    // YouTube, Vimeo, or Supabase Storage URL
+  thumbnail_url String?   // Video thumbnail
+  duration      String?   // e.g., "2:30"
+  category      VideoCategory
+  is_featured   Boolean   @default(false)
+  is_active     Boolean   @default(true)
+  view_count    Int       @default(0)
+  sort_order    Int       @default(0)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  
+  @@map("videos")
+}
+
+enum VideoCategory {
+  COMPANY_INTRO
+  SERVICE_DEMO
+  CLIENT_TESTIMONIAL
+  BEHIND_SCENES
+  TUTORIAL
+}
+
+// Blog posts for SEO and thought leadership
+model BlogPost {
+  id            String    @id @default(uuid())
+  title         String
+  slug          String    @unique
+  content       String    // Rich text content
+  excerpt       String?   // Short summary
+  featured_image String?
+  meta_title    String?   // SEO meta title
+  meta_description String? // SEO meta description
+  tags          Json?     // Array of tags
+  is_published  Boolean   @default(false)
+  is_featured   Boolean   @default(false)
+  read_time     Int?      // Estimated read time in minutes
+  view_count    Int       @default(0)
+  published_at  DateTime?
+  created_by    String
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  
+  // Relationships
+  author        User      @relation(fields: [created_by], references: [id])
+  
+  @@map("blog_posts")
+}
+
+// Client inquiries/contact form submissions
+model Inquiry {
+  id            String    @id @default(uuid())
+  name          String
+  email         String
+  phone         String?
+  company       String?
+  message       String
+  service_id    String?   // Service they're interested in
+  budget_range  String?   // Their budget range
+  timeline      String?   // Expected timeline
+  source        String?   // How they found us
+  status        InquiryStatus @default(NEW)
+  priority      InquiryPriority @default(MEDIUM)
+  assigned_to   String?   // Admin user handling this
+  notes         String?   // Internal notes
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  
+  // Relationships
+  service       Service?  @relation(fields: [service_id], references: [id])
+  
+  @@map("inquiries")
+}
+
+enum InquiryStatus {
+  NEW
+  IN_PROGRESS
+  PROPOSAL_SENT
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+enum InquiryPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// Company information and settings
+model CompanyInfo {
+  id            String    @id @default(uuid())
+  name          String
+  tagline       String?
+  description   String
+  logo_url      String?
+  email         String
+  phone         String?
+  address       String?
+  city          String?
+  country       String?
+  website       String?
+  social_links  Json?     // Object with social media URLs
+  business_hours Json?    // Operating hours
+  founded_year  Int?
+  team_size     String?   // e.g., "10-50 employees"
+  updated_at    DateTime  @updatedAt
+  
+  @@map("company_info")
+}
+
+// Team members
+model TeamMember {
+  id            String    @id @default(uuid())
+  name          String
+  title         String    // Job title
+  bio           String?
+  photo_url     String?
+  email         String?
+  linkedin_url  String?
+  github_url    String?
+  skills        Json?     // Array of skills
+  is_active     Boolean   @default(true)
+  sort_order    Int       @default(0)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  
+  @@map("team_members")
+}
+
+// FAQ section
+model FAQ {
+  id            String    @id @default(uuid())
+  question      String
+  answer        String
+  category      String?   // e.g., "General", "Services", "Pricing"
+  is_active     Boolean   @default(true)
+  sort_order    Int       @default(0)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  
+  @@map("faqs")
+}
+
+// Newsletter subscribers
+model Subscriber {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String?
+  is_active     Boolean   @default(true)
+  subscribed_at DateTime  @default(now())
+  unsubscribed_at DateTime?
+  
+  @@map("subscribers")
+}
+
+// Analytics and metrics
+model Analytics {
+  id            String    @id @default(uuid())
+  page_path     String
+  visitor_count Int       @default(0)
+  unique_visitors Int     @default(0)
+  date          DateTime  @default(now())
+  
+  @@unique([page_path, date])
+  @@map("analytics")
+}

@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 
 interface StatProps {
@@ -10,7 +8,6 @@ interface StatProps {
 export default function StatCounter({ end, label }: StatProps) {
   const [count, setCount] = useState<number>(0);
   const [inView, setInView] = useState(false);
-
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -23,7 +20,6 @@ export default function StatCounter({ end, label }: StatProps) {
     const element = document.getElementById(`stat-${label}`);
     if (element) observer.observe(element);
   }, [inView, label]);
-
   useEffect(() => {
     if (inView) {
       const duration = 2500;
@@ -42,13 +38,12 @@ export default function StatCounter({ end, label }: StatProps) {
       }, duration / steps);
     }
   }, [inView, end]);
-
   return (
     <div id={`stat-${label}`} className="text-center p-6">
-      <div className="text-5xl font-bold text-blue-600 mb-2">
+      <div className="text-5xl font-bold text-[var(--color-maasai-red)] mb-2">
         {count.toLocaleString()}+
       </div>
-      <p className="text-xl text-gray-700">{label}</p>
+      <p className="text-xl text-[var(--color-maasai-light-grey)]">{label}</p>
     </div>
   );
 }
