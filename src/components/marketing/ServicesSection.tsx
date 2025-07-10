@@ -1,344 +1,417 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { motion, Variants } from "framer-motion";
-import Link from 'next/link'; // Keep Link in case you want to link to individual service detail pages later
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Globe, ChartNoAxesCombined, Palette, MessageCircle, Smartphone, Code } from "lucide-react"; // All necessary icons
-import StatCounter from "../common/StatCounter";
-import TextRotator from "../common/TextRotator";
-import { Badge } from "../ui/badge";
+import { motion, AnimatePresence, Variants } from "framer-motion";
+import { Globe, BarChart3, Palette, MessageCircle, Smartphone, Code, ArrowRight, ExternalLink } from "lucide-react";
 
-// Define a type for your Service data for better type safety
-interface Service {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  short_desc?: string;
-  icon?: string;
-  image_url?: string;
-  price_range?: string;
-  duration?: string;
-  features: string[];
-  technologies: string[];
-  is_featured: boolean;
-  is_active: boolean;
-  sort_order: number;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  creator?: {
-    name: string;
-    email: string;
-  };
-}
+// Mock data for demonstration
+const mockServices = [
+  {
+    id: "1",
+    name: "Web Development",
+    slug: "web-development",
+    description: "We create stunning, responsive websites that drive business growth and enhance user experience through cutting-edge technologies and modern design principles.",
+    short_desc: "Custom web solutions that scale with your business",
+    icon: "Globe",
+    technologies: ["React", "Next.js", "TypeScript", "Node.js", "PostgreSQL"],
+    features: ["Responsive Design", "SEO Optimization", "Performance Monitoring", "Security Implementation", "Content Management"],
+    is_featured: true,
+    sort_order: 1
+  },
+  {
+    id: "2",
+    name: "Mobile Development",
+    slug: "mobile-development",
+    description: "Native and cross-platform mobile applications that deliver exceptional user experiences across iOS and Android devices, built with performance and scalability in mind.",
+    short_desc: "Native mobile apps for iOS and Android",
+    icon: "Smartphone",
+    technologies: ["React Native", "Flutter", "Swift", "Kotlin", "Firebase"],
+    features: ["Cross-Platform", "Native Performance", "Push Notifications", "Offline Support", "App Store Optimization"],
+    is_featured: true,
+    sort_order: 2
+  },
+  {
+    id: "3",
+    name: "Data Analytics",
+    slug: "data-analytics",
+    description: "Transform your data into actionable insights with our comprehensive analytics solutions, featuring advanced visualization, predictive modeling, and business intelligence.",
+    short_desc: "Data-driven insights for better decisions",
+    icon: "BarChart3",
+    technologies: ["Python", "R", "Tableau", "Power BI", "Apache Spark"],
+    features: ["Real-time Analytics", "Custom Dashboards", "Predictive Modeling", "Data Visualization", "Business Intelligence"],
+    is_featured: false,
+    sort_order: 3
+  },
+  {
+    id: "4",
+    name: "UI/UX Design",
+    slug: "ui-ux-design",
+    description: "Create memorable user experiences through thoughtful design that combines aesthetics with functionality, ensuring your product stands out in the market.",
+    short_desc: "Beautiful, intuitive user interfaces",
+    icon: "Palette",
+    technologies: ["Figma", "Adobe XD", "Sketch", "Principle", "Framer"],
+    features: ["User Research", "Wireframing", "Prototyping", "Design Systems", "Usability Testing"],
+    is_featured: true,
+    sort_order: 4
+  },
+  {
+    id: "5",
+    name: "Digital Marketing",
+    slug: "digital-marketing",
+    description: "Comprehensive digital marketing strategies that amplify your brand presence, drive engagement, and convert leads into loyal customers through multi-channel approaches.",
+    short_desc: "Strategic marketing for digital growth",
+    icon: "MessageCircle",
+    technologies: ["Google Ads", "Facebook Ads", "SEO Tools", "Analytics", "CRM"],
+    features: ["SEO/SEM", "Social Media Marketing", "Content Strategy", "Email Marketing", "Performance Analytics"],
+    is_featured: false,
+    sort_order: 5
+  },
+  {
+    id: "6",
+    name: "Custom Software",
+    slug: "custom-software",
+    description: "Tailored software solutions designed specifically for your business needs, from enterprise applications to specialized tools that streamline operations and boost productivity.",
+    short_desc: "Bespoke software solutions",
+    icon: "Code",
+    technologies: ["Python", "Java", "C#", "Docker", "Kubernetes"],
+    features: ["Custom Development", "System Integration", "API Development", "Cloud Deployment", "Maintenance Support"],
+    is_featured: true,
+    sort_order: 6
+  }
+];
 
-// Helper function to map icon names (strings from DB) to Lucide-React components
-const getIconComponent = (iconName: string | undefined) => {
+const getIconComponent = (iconName: string) => {
+  const iconProps = { className: "w-8 h-8" };
   switch (iconName) {
-    case 'Globe':
-      return <Globe className="w-6 h-6" />;
-    case 'MessageSquare':
-    case 'MessageCircle':
-      return <MessageCircle className="w-6 h-6" />;
-    case 'Code':
-      return <Code className="w-6 h-6" />;
-    case 'Smartphone':
-      return <Smartphone className="w-6 h-6" />;
+    case 'Globe': return <Globe {...iconProps} />;
+    case 'MessageCircle': return <MessageCircle {...iconProps} />;
+    case 'Code': return <Code {...iconProps} />;
+    case 'Smartphone': return <Smartphone {...iconProps} />;
     case 'ChartNoAxesCombined':
-      return <ChartNoAxesCombined className="w-6 h-6" />;
-    case 'Palette':
-      return <Palette className="w-6 h-6" />;
-    default:
-      return <Globe className="w-6 h-6" />; // Default icon if not found
+    case 'BarChart3':
+      return <BarChart3 {...iconProps} />;
+    case 'Palette': return <Palette {...iconProps} />;
+    default: return <Globe {...iconProps} />;
   }
 };
 
 export default function ServicesOverview() {
-  const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [services] = useState(mockServices);
+  const [activeService, setActiveService] = useState(0);
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
+  // Auto-rotate active service
   useEffect(() => {
-    const fetchAllServices = async () => {
-      try {
-        // Fetch all active services
-        const response = await fetch('/api/services');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data: Service[] = await response.json();
-        // Parse JSON fields if they come as strings from the API
-        const parsedData = data.map(service => ({
-          ...service,
-          features: typeof service.features === 'string' ? JSON.parse(service.features) : service.features,
-          technologies: typeof service.technologies === 'string' ? JSON.parse(service.technologies) : service.technologies,
-        }));
-        setServices(parsedData);
-      } catch (err) {
-        console.error("Failed to fetch all services:", err);
-        setError("Failed to load services. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
+    const interval = setInterval(() => {
+      setActiveService((prev) => (prev + 1) % services.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [services.length]);
 
-    fetchAllServices();
-  }, []); // Empty dependency array means this runs once on mount
-
-  const fallingHeaderVariants: Variants = {
-    hidden: {
-      opacity: 0,
-      y: -100,
-      scale: 0.8,
-    },
+  const containerVariants:Variants = {
+    hidden: { opacity: 0 },
     visible: {
       opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const cardVariants:Variants = {
+    hidden: { 
+      opacity: 0, 
+      y: 100,
+      scale: 0.8
+    },
+    visible: { 
+      opacity: 1, 
       y: 0,
       scale: 1,
       transition: {
         type: "spring",
-        damping: 8,
         stiffness: 100,
-        duration: 1.2,
-        bounce: 0.6,
-      },
-    },
+        damping: 15
+      }
+    }
   };
 
-  const serviceCardVariants: Variants = {
-    hidden: {
-      opacity: 0,
-      y: 30,
-    },
-    visible: (index: number) => ({
-      opacity: 1,
+  const headerVariants:Variants = {
+    hidden: { opacity: 0, y: -50 },
+    visible: { 
+      opacity: 1, 
       y: 0,
       transition: {
-        duration: 0.6,
-        delay: index * 0.1,
-      },
-    }),
-    hover: {
-      y: -5,
-      scale: 1.02,
-      transition: {
-        duration: 0.3,
-        ease: "easeInOut",
-      },
-    },
+        type: "spring",
+        stiffness: 100,
+        damping: 10
+      }
+    }
   };
 
-  if (loading) {
-    return (
-      <section className="py-20 bg-white/90 flex justify-center items-center h-screen">
-        <p className="text-xl text-[var(--color-maasai-dark-grey)]">Loading services...</p>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section className="py-20 bg-white/90 flex justify-center items-center h-screen">
-        <p className="text-xl text-red-600">{error}</p>
-      </section>
-    );
-  }
+  const activeServiceVariants:Variants = {
+    hidden: { opacity: 0, x: 100 },
+    visible: { 
+      opacity: 1, 
+      x: 0,
+      transition: {
+        type: "spring",
+        stiffness: 80,
+        damping: 15
+      }
+    },
+    exit: { 
+      opacity: 0, 
+      x: -100,
+      transition: { duration: 0.3 }
+    }
+  };
 
   return (
-    <section className="py-20 bg-white/80">
-      <div className="container mx-auto px-6">
-        {/* Main Section Header - Adapted from ServicesSection */}
+    <section className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-white to-slate-100 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,_var(--color-maasai-red)_0%,_transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_75%,_var(--color-maasai-blue)_0%,_transparent_50%)]" />
+      </div>
+
+      <div className="container mx-auto px-6 py-16 relative z-10">
+        {/* Header */}
         <motion.div
-          className="text-center mb-16"
-          variants={fallingHeaderVariants}
+          className="text-center mb-20"
+          variants={headerVariants}
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
+          animate="visible"
         >
-          <motion.h2
-            className="text-4xl md:text-5xl font-bold text-[var(--color-maasai-dark-grey)] mb-6"
-            animate={{
-              y: [-2, 2, -2, 0],
-            }}
-            transition={{
-              duration: 0.6,
-              delay: 1.2,
-              repeat: 1,
-              repeatType: "reverse",
-              ease: "easeInOut",
-              type: "tween",
-            }}
-          >
-            Our Services
-          </motion.h2>
-
+            <motion.h2 
+                      className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-800 mb-8"
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
+                    >
+                      Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-orange-500">Services</span>
+                    </motion.h2>
+          
           <motion.div
-            className="w-24 h-1 bg-[var(--color-maasai-red)] mx-auto mb-6 rounded-full"
+            className="w-32 h-1 bg-gradient-to-r from-red-600 to-orange-500 mx-auto mb-8 rounded-full"
             initial={{ width: 0 }}
-            whileInView={{ width: 96 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            viewport={{ once: true }}
+            animate={{ width: 128 }}
+            transition={{ duration: 1, delay: 0.5 }}
           />
-
+          
           <motion.p
-            className="text-xl text-[var(--color-maasai-dark-grey)]/70 max-w-2xl mx-auto"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 1.0 }}
-            viewport={{ once: true }}
+            className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.7 }}
           >
-            We streamline business operations by assessing various parameters
-            and offering exceptional{" "}
-            <TextRotator
-              words={["solutions", "analysis", "results", "innovations"]}
-            />
+            Transforming businesses through innovative technology solutions that drive growth, enhance efficiency, and create exceptional user experiences.
           </motion.p>
         </motion.div>
 
-        {/* Services Grid - Applies FeaturedSection's Card styling */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.length > 0 ? (
-            services.map((service, index) => (
+        {/* Main Content Grid */}
+        <div className="grid lg:grid-cols-2 gap-16 items-start">
+          {/* Services Cards */}
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {services.map((service, index) => (
               <motion.div
                 key={service.id}
-                initial="hidden"
-                whileInView="visible"
-                whileHover="hover"
-                custom={index}
-                variants={serviceCardVariants}
-                viewport={{ once: true, amount: 0.2 }}
+                variants={cardVariants}
+                whileHover={{ 
+                  scale: 1.05,
+                  transition: { duration: 0.3 }
+                }}
+                className={`relative group cursor-pointer transition-all duration-500 ${
+                  activeService === index ? 'z-10' : 'z-0'
+                }`}
+                onClick={() => setActiveService(index)}
+                onMouseEnter={() => setHoveredCard(index)}
+                onMouseLeave={() => setHoveredCard(null)}
               >
-                <Card className="hover:shadow-xl transition-all duration-300 border-0 bg-white group hover:bg-[var(--color-maasai-light-grey)]/20 h-full flex flex-col">
-                  <CardHeader>
-                    <div className="flex items-center space-x-3 mb-3">
-                      <div className="p-3 bg-[var(--color-maasai-red)]/10 rounded-lg text-[var(--color-maasai-red)] group-hover:bg-[var(--color-maasai-red)] group-hover:text-white transition-all duration-300">
-                        {getIconComponent(service.icon)}
-                      </div>
-                      <CardTitle className="text-xl text-[var(--color-maasai-dark-grey)]">
-                        {service.name}
-                      </CardTitle>
-                    </div>
-                    <CardDescription className="text-[var(--color-maasai-dark-grey)]/70 text-base">
-                      {service.short_desc || service.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex-grow flex flex-col justify-between">
-                    <div className="space-y-4">
-                      {/* Price and Duration */}
-                      <div className="bg-[var(--color-maasai-light-grey)]/30 p-4 rounded-lg">
-                        <div className="flex justify-between text-sm mb-2">
-                          <span className="text-[var(--color-maasai-dark-grey)]/60 font-medium">
-                            Price Range:
-                          </span>
-                          <span className="font-bold text-[var(--color-maasai-red)]">
-                            {service.price_range || 'N/A'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-[var(--color-maasai-dark-grey)]/60 font-medium">
-                            Duration:
-                          </span>
-                          <span className="font-bold text-[var(--color-maasai-blue)]">
-                            {service.duration || 'N/A'}
-                          </span>
-                        </div>
-                      </div>
+                <div className={`
+                  relative p-8 rounded-2xl transition-all duration-500 h-64
+                  ${activeService === index 
+                    ? 'bg-gradient-to-br from-red-600 to-orange-500 text-white shadow-2xl' 
+                    : 'bg-white/80 backdrop-blur-sm text-slate-800 shadow-lg hover:shadow-xl'
+                  }
+                  ${hoveredCard === index ? 'transform -translate-y-2' : ''}
+                `}>
+                  
+                  {/* Icon */}
+                  <div className={`
+                    inline-flex p-4 rounded-xl mb-4 transition-all duration-300
+                    ${activeService === index 
+                      ? 'bg-white/20 text-white' 
+                      : 'bg-red-50 text-red-600 group-hover:bg-red-100'
+                    }
+                  `}>
+                    {getIconComponent(service.icon)}
+                  </div>
 
-                      {/* Technologies */}
-                      <div>
-                        <h4 className="text-sm font-semibold text-[var(--color-maasai-dark-grey)] mb-2">
-                          Technologies:
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {service.technologies.slice(0, 3).map((tech, techIndex) => (
-                            <Badge
-                              key={techIndex}
-                              variant="secondary"
-                              className="text-xs bg-[var(--color-maasai-red)]/10 text-[var(--color-maasai-red)] border-[var(--color-maasai-red)]/20 hover:bg-[var(--color-maasai-red)] hover:text-white transition-colors duration-200"
-                            >
-                              {tech}
-                            </Badge>
-                          ))}
-                          {service.technologies.length > 3 && (
-                            <Badge
-                              variant="outline"
-                              className="text-xs text-[var(--color-maasai-dark-grey)]/60 border-[var(--color-maasai-dark-grey)]/20"
-                            >
-                              +{service.technologies.length - 3} more
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
+                  {/* Content */}
+                  <h3 className="text-2xl font-bold mb-3 transition-colors duration-300">
+                    {service.name}
+                  </h3>
+                  
+                  <p className={`
+                    text-sm leading-relaxed transition-colors duration-300
+                    ${activeService === index ? 'text-white/90' : 'text-slate-600'}
+                  `}>
+                    {service.short_desc}
+                  </p>
 
-                      {/* Features */}
-                      <div>
-                        <h4 className="text-sm font-semibold text-[var(--color-maasai-dark-grey)] mb-2">
-                          Key Features:
-                        </h4>
-                        <ul className="text-sm text-[var(--color-maasai-dark-grey)]/70 space-y-1">
-                          {service.features.slice(0, 3).map((feature, featureIndex) => (
-                            <li key={featureIndex} className="flex items-center">
-                              <span className="w-1.5 h-1.5 bg-[var(--color-maasai-red)] rounded-full mr-2"></span>
-                              {feature}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
+                  {/* Active Indicator */}
+                  {activeService === index && (
+                    <motion.div
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full shadow-lg flex items-center justify-center"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="w-3 h-3 bg-red-600 rounded-full" />
+                    </motion.div>
+                  )}
 
-                    {/* CTA Button */}
-                    <div className="pt-4 mt-auto">
-                      {/* You can link this to a dynamic service detail page */}
-                      <Link href={`/services/${service.slug}`} passHref>
-                        <button className="w-full py-3 bg-gradient-to-r from-[var(--color-maasai-red)] to-[var(--color-maasai-accent)] text-white font-semibold rounded-lg hover:from-[var(--color-maasai-accent)] hover:to-[var(--color-maasai-red)] transition-all duration-300 transform hover:scale-105 shadow-lg">
-                          Learn More
-                        </button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
+                  {/* Hover Effect */}
+                  <div className={`
+                    absolute inset-0 rounded-2xl transition-opacity duration-300
+                    ${hoveredCard === index ? 'bg-gradient-to-br from-red-600/10 to-orange-500/10' : 'opacity-0'}
+                  `} />
+                </div>
               </motion.div>
-            ))
-          ) : (
-            <div className="col-span-full text-center text-gray-500 text-lg">
-              No services found.
+            ))}
+          </motion.div>
+
+          {/* Service Details Panel */}
+          <div className="lg:sticky lg:top-24">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeService}
+                variants={activeServiceVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-slate-200"
+              >
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="p-3 bg-red-50 rounded-xl text-red-600">
+                    {getIconComponent(services[activeService].icon)}
+                  </div>
+                  <div>
+                    <h3 className="text-3xl font-bold text-slate-800">
+                      {services[activeService].name}
+                    </h3>
+                    <div className="w-16 h-1 bg-gradient-to-r from-red-600 to-orange-500 rounded-full mt-2" />
+                  </div>
+                </div>
+
+                <p className="text-slate-600 text-lg leading-relaxed mb-8">
+                  {services[activeService].description}
+                </p>
+
+                {/* Technologies */}
+                <div className="mb-8">
+                  <h4 className="text-lg font-semibold text-slate-800 mb-4">Technologies</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {services[activeService].technologies.map((tech, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-red-50 text-red-600 rounded-full text-sm font-medium border border-red-100"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Features */}
+                <div className="mb-8">
+                  <h4 className="text-lg font-semibold text-slate-800 mb-4">Key Features</h4>
+                  <div className="space-y-3">
+                    {services[activeService].features.map((feature, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-red-600 rounded-full" />
+                        <span className="text-slate-600">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Action */}
+                <motion.div
+                  className="flex items-center gap-4 pt-6 border-t border-slate-200"
+                  whileHover={{ x: 5 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="group flex items-center gap-2 text-red-600 font-semibold cursor-pointer">
+                    <span>Explore Details</span>
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                  </div>
+                  <div className="group flex items-center gap-2 text-slate-600 cursor-pointer">
+                    <span>View Portfolio</span>
+                    <ExternalLink className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
+                  </div>
+                </motion.div>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Progress Indicators */}
+            <div className="flex justify-center gap-2 mt-8">
+              {services.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setActiveService(index)}
+                  className={`
+                    w-3 h-3 rounded-full transition-all duration-300
+                    ${index === activeService 
+                      ? 'bg-red-600 w-8' 
+                      : 'bg-slate-300 hover:bg-slate-400'
+                    }
+                  `}
+                />
+              ))}
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Stat Counter Section */}
+        {/* Stats Section */}
         <motion.div
-          className="mt-20 grid md:grid-cols-3 gap-8 bg-gradient-to-r from-[var(--color-maasai-red)] to-[var(--color-maasai-black)] rounded-md p-8"
-          initial={{ opacity: 0 }}
-          animate={{
-            opacity: [0.5, 1, 0.5],
-            y: [0, 10, 0],
-          }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            repeatType: "reverse",
-            ease: "easeInOut",
-          }}
+          className="mt-32 grid grid-cols-1 md:grid-cols-3 gap-8"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 1.2 }}
         >
-          <div className="text-center text-white">
-            <StatCounter end={15} label="Countries" />
-          </div>
-          <div className="text-center text-white">
-            <StatCounter end={10} label="Years in Operation" />
-          </div>
-          <div className="text-center text-white">
-            <StatCounter end={50} label="Partners" />
-          </div>
+          {[
+            { number: "150+", label: "Projects Completed", color: "from-red-600 to-orange-500" },
+            { number: "50+", label: "Happy Clients", color: "from-blue-600 to-purple-500" },
+            { number: "10+", label: "Years Experience", color: "from-green-600 to-teal-500" }
+          ].map((stat, index) => (
+            <div key={index} className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg">
+              <div className={`text-4xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent mb-2`}>
+                {stat.number}
+              </div>
+              <div className="text-slate-600 font-medium">{stat.label}</div>
+            </div>
+          ))}
         </motion.div>
       </div>
+
+      {/* CSS for custom variables */}
+      <style jsx global>{`
+        :root {
+          --color-maasai-red: #dc2626;
+          --color-maasai-blue: #2563eb;
+          --color-maasai-accent: #ea580c;
+          --color-maasai-dark-grey: #1f2937;
+          --color-maasai-light-grey: #f3f4f6;
+          --color-maasai-black: #111827;
+        }
+      `}</style>
     </section>
   );
 }

@@ -2,16 +2,15 @@
 import { motion, Variants } from "framer-motion";
 import React, { useState, useEffect } from "react";
 import { Volleyball, ArrowRight } from "lucide-react";
-import { Button } from "../ui/button"; 
 import { useRouter } from "next/navigation";
-
+import { Button } from "../ui/button";
 
 interface CompanyInfo {
   id: string;
   name: string;
   tagline?: string;
   description: string;
-  logo_url?: string; 
+  logo_url?: string;
   email: string;
   phone?: string;
   address?: string;
@@ -34,7 +33,7 @@ export default function HeroSection() {
   useEffect(() => {
     const fetchCompanyInfo = async () => {
       try {
-        const response = await fetch('/api/data/company-info'); 
+        const response = await fetch("/api/data/company-info");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -49,7 +48,8 @@ export default function HeroSection() {
     };
 
     fetchCompanyInfo();
-  }, []); 
+  }, []);
+
   const heroVariants: Variants = {
     hidden: { opacity: 0, y: 50 },
     visible: {
@@ -68,7 +68,6 @@ export default function HeroSection() {
     visible: { opacity: 1, y: 0 },
   };
 
- 
   const featureVariants: Variants = {
     hidden: { opacity: 0, scale: 0.8 },
     visible: {
@@ -83,8 +82,14 @@ export default function HeroSection() {
 
   if (loading) {
     return (
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black/90 text-white">
-        <p className="text-xl">Loading hero content...</p>
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black/90 text-white px-6">
+        <div className="w-full max-w-4xl space-y-6">
+          {/* Message */}
+          <div className="text-center mt-10">
+            <p className="text-2xl font-bold text-white mb-2">One sec...</p>
+            <p className="text-zinc-400">We sure have something for you</p>
+          </div>
+        </div>
       </section>
     );
   }
@@ -110,7 +115,6 @@ export default function HeroSection() {
     team_size: "10-25 employees",
   };
 
-
   return (
     <>
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -125,7 +129,8 @@ export default function HeroSection() {
             backgroundBlendMode: "multiply",
           }}
         />
-        <div className="absolute inset-0 bg-black/40" />
+
+        <div className="absolute inset-0 bg-black backdrop-blur-0 bg-opacity-60"></div>
 
         {/* Main Hero Content */}
         <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -172,7 +177,7 @@ export default function HeroSection() {
               <Button
                 size="lg"
                 className="group relative px-8 py-4 bg-gradient-to-r from-[var(--color-maasai-red)] to-[var(--color-maasai-accent)] text-white hover:bg-white hover:text-[var(--color-maasai-red)] font-semibold rounded shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 overflow-hidden"
-                onClick={() => router.push("/portfolio")} 
+                onClick={() => router.push("/portfolio")}
               >
                 <span className="relative z-10">See Our Work</span>
                 <div className="absolute inset-0 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
@@ -180,7 +185,6 @@ export default function HeroSection() {
             </motion.div>
           </motion.div>
         </div>
-
         {/* Animated scroll indicator */}
         <motion.div
           className="absolute bottom-8 left-1/2 transform -translate-x-1/2"

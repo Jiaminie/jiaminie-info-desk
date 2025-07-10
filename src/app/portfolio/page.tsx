@@ -1,9 +1,14 @@
 "use client";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { ExternalLink, Github, ChevronRight, ArrowUp, MessageCircle, Share2 } from "lucide-react";
-import Navbar from "@/components/ui/Navbar";
-
+import {
+  ExternalLink,
+  Github,
+  ChevronRight,
+  ArrowUp,
+  MessageCircle,
+  Share2,
+} from "lucide-react";
 
 interface Testimonial {
   id: number;
@@ -36,7 +41,7 @@ const testimonials: Testimonial[] = [
     projectUrl: "https://example.com",
     upvotes: 247,
     comments: 18,
-    timeAgo: "2 months ago"
+    timeAgo: "2 months ago",
   },
   {
     id: 2,
@@ -52,7 +57,7 @@ const testimonials: Testimonial[] = [
     projectUrl: "https://example.com",
     upvotes: 189,
     comments: 12,
-    timeAgo: "1 month ago"
+    timeAgo: "1 month ago",
   },
   {
     id: 3,
@@ -68,7 +73,7 @@ const testimonials: Testimonial[] = [
     projectUrl: "https://example.com",
     upvotes: 156,
     comments: 9,
-    timeAgo: "3 weeks ago"
+    timeAgo: "3 weeks ago",
   },
   {
     id: 4,
@@ -84,12 +89,11 @@ const testimonials: Testimonial[] = [
     projectUrl: "https://example.com",
     upvotes: 203,
     comments: 15,
-    timeAgo: "1 week ago"
+    timeAgo: "1 week ago",
   },
 ];
 
 export default function RedditStyleTestimonialsPortfolio() {
-
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -110,21 +114,21 @@ export default function RedditStyleTestimonialsPortfolio() {
   };
 
   return (
-    <div className="min-h-screen ">
-      <Navbar />
-      
-      {/* Header with Real Background Image */}
-      <div className="w-full relative h-80 bg-cover bg-center" style={{
-        backgroundImage: `url('https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80')`
-      }}>
+    <div className="min-h-screen backdrop-blur-xl bg-black/50">
+     
+      {/* Header  */}
+      <div
+        className="w-full relative h-80 bg-cover bg-center"
+        style={{
+          backgroundImage: `url('https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80')`,
+        }}
+      >
         {/* Dark overlay */}
-        <div className="absolute inset-0 bg-black bg-opacity-60"></div>
-        
+        <div className="absolute inset-0 bg-black backdrop-blur-0 bg-opacity-60"></div>
+
         <div className="relative z-10 flex items-center justify-center h-full">
           <div className="text-center text-white px-6">
-            <h1 className="text-5xl font-bold mb-4">
-              Client Success Stories
-            </h1>
+            <h1 className="text-5xl font-bold mb-4">Client Success Stories</h1>
             <p className="text-xl text-gray-200 max-w-2xl">
               Real testimonials and project showcases from our satisfied clients
             </p>
@@ -132,10 +136,17 @@ export default function RedditStyleTestimonialsPortfolio() {
         </div>
       </div>
 
+      {/* Background pattern */}
+      <div
+        className="absolute inset-0 opacity-10"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.05' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20V40zm20 0L40 20V0H0L20 20V40z'/%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundSize: "40px 40px",
+        }}
+      ></div>
       {/* Main Content - Reddit Style Layout */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          
           {/* Left Column - Portfolio (3/4 width) */}
           <div className="lg:col-span-3 space-y-4">
             <motion.div
@@ -160,7 +171,7 @@ export default function RedditStyleTestimonialsPortfolio() {
                           {testimonial.upvotes}
                         </span>
                       </div>
-                      
+
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-3">
                           <h3 className="text-xl font-bold text-gray-900">
@@ -170,7 +181,7 @@ export default function RedditStyleTestimonialsPortfolio() {
                             {testimonial.company}
                           </span>
                         </div>
-                        
+
                         <p className="text-gray-700 mb-4">
                           {testimonial.content}
                         </p>
@@ -235,7 +246,7 @@ export default function RedditStyleTestimonialsPortfolio() {
                 Client Testimonials
               </h3>
             </div>
-            
+
             <motion.div
               variants={containerVariants}
               initial="hidden"
@@ -263,11 +274,11 @@ export default function RedditStyleTestimonialsPortfolio() {
                       </p>
                     </div>
                   </div>
-                  
+
                   <p className="text-gray-700 text-sm mb-3 line-clamp-3">
                     "{testimonial.content}"
                   </p>
-                  
+
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>{testimonial.timeAgo}</span>
                     <button className="flex items-center space-x-1 hover:text-gray-700 transition-colors">
@@ -282,20 +293,7 @@ export default function RedditStyleTestimonialsPortfolio() {
         </div>
       </div>
 
-      {/* Compact Footer */}
-      <footer className="bg-gray-900 text-white">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="text-center">
-            <h3 className="text-2xl font-bold mb-2">Ready to Start Your Project?</h3>
-            <p className="text-gray-300 mb-6">
-              Join our growing list of satisfied clients
-            </p>
-            <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-300">
-              Get Started Today
-            </button>
-          </div>
-        </div>
-      </footer>
+
     </div>
   );
 }

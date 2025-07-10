@@ -10,6 +10,7 @@ import {
   MapPin,
   Heart,
 } from "lucide-react";
+import Link from "next/link";
 export default function Footer() {
   const socialLinks = [
     { icon: Facebook, platform: "Facebook", href: "#" },
@@ -18,25 +19,41 @@ export default function Footer() {
     { icon: Instagram, platform: "Instagram", href: "#" },
   ];
   const quickLinks = [
-    { name: "Home", href: "#home" },
-    { name: "About", href: "#about" },
-    { name: "Services", href: "#services" },
-    { name: "Mission", href: "#mission" },
-    { name: "Contact", href: "#contact" },
+    { name: "Home", href: "/home" },
+    { name: "Services", href: "/services" },
+    { name: "Portfolio", href: "/portfolio" },
+    { name: "About", href: "/about" },
+    { name: "Contact", href: "/contact" },
   ];
   return (
     <footer
-      id="contact"
-      className="relative bg-[var(--color-maasai-black)] text-white py-16 overflow-hidden"
+      className="relative bg-[var(--color-maasai-black)] text-white py-10 md:py-14 overflow-hidden bottom-0 w-full"
     >
       <div className="absolute inset-0 bg-transparent"></div>
 
       <div className="container mx-auto px-6 relative z-10">
-        <div className="grid md:grid-cols-4 gap-8 mb-12">
+        <div className="grid md:grid-cols-4 gap-8 mb-8 md:mb-12">
           <div className="col-span-2">
             <div className="flex items-center gap-3 mb-4">
-              <h3 className="text-3xl font-bold text-[var(--color-maasai-accent)]">JIAMINIE.Inc</h3>
-            </div>
+ <motion.div
+              className="relative"
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            >
+              <Link href="/" className="block">
+                <motion.span
+                  className={`text-xl sm:text-2xl font-bold tracking-tight
+                  text-[var(--color-maasai-red)]
+                  `}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  Jiaminie
+                  <span className="text-sm font-normal opacity-80">.inc</span>
+                </motion.span>
+              </Link>
+            </motion.div>            </div>
             <p className="text-[var(--color-maasai-light-grey)] leading-relaxed mb-6 max-w-md">
               Empowering businesses through innovative digital solutions and
               sustainable technology practices.
@@ -96,7 +113,7 @@ export default function Footer() {
                   <Phone size={16} className="text-[var(--color-maasai-accent)]" />
                 </div>
                 <a
-                  href="tel:+1555123456"
+                  href="tel:+ +254-114-102-5756"
                   className="hover:text-[var(--color-maasai-accent)] transition-colors duration-300"
                 >
                   +254-114-102-575
@@ -112,9 +129,9 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-[var(--color-maasai-dark-grey)] pt-8 text-center">
+       <div className="border-t border-[var(--color-maasai-dark-grey)] pt-6 md:pt-8 text-center">
           <p className="text-[var(--color-maasai-light-grey)] flex items-center justify-center gap-2">
-            © 2025 JIAMINIE.Inc. All rights reserved.
+            © 2025 Jiaminie.Inc. All rights reserved.
           </p>
         </div>
       </div>

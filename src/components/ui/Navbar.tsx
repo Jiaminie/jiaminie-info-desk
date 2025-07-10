@@ -1,9 +1,8 @@
 "use client";
-
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Menu } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -17,6 +16,10 @@ export default function Navbar() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    setActiveItem(window.location.pathname);
   }, []);
 
   // Close mobile menu when clicking outside
@@ -51,15 +54,30 @@ export default function Navbar() {
   }, [isMobileMenu]);
 
   const navItems = [
-    { label: "Home", path: "/home" },
+    { label: "Home", path: "/" },
+    {
+      label: "Services",
+      path: "/services",
+      dropdown: [
+        { label: "Web Development", path: "/services#web-development" },
+        {
+          label: "WhatsApp Integration",
+          path: "/services#whatsapp-integration",
+        },
+        { label: "Next.js Apps", path: "/services#nextjs-apps" },
+        { label: "Mobile Development", path: "/services#mobile-development" },
+      ],
+    },
     { label: "Portfolio", path: "/portfolio" },
     { label: "About", path: "/about" },
     { label: "Contact", path: "/contact" },
   ];
 
+  const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
+
   const handleNavClick = (path: string) => {
     setActiveItem(path);
-    setIsMobileMenu(false);
+    setIsMobileMenu(false); // Close mobile menu on navigation
   };
 
   return (
@@ -82,7 +100,7 @@ export default function Navbar() {
               whileHover={{ scale: 1.02 }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
-              <Link href="/home" className="block">
+              <Link href="/" className="block">
                 <motion.span
                   className={`text-xl sm:text-2xl font-bold tracking-tight ${
                     scrolled ? "text-[var(--color-maasai-red)]" : "text-white"
@@ -106,6 +124,10 @@ export default function Navbar() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 + index * 0.1 }}
                   className="relative"
+                  onMouseEnter={() =>
+                    item.dropdown && setDropdownOpen(item.label)
+                  }
+                  onMouseLeave={() => item.dropdown && setDropdownOpen(null)}
                 >
                   <Link
                     href={item.path}
@@ -114,6 +136,8 @@ export default function Navbar() {
                       scrolled
                         ? "text-[var(--color-maasai-dark-grey)] hover:text-[var(--color-maasai-red)]"
                         : "text-white/90 hover:text-white"
+                    } ${
+                      activeItem === item.path ? "font-bold" : "" // Bold active item
                     }`}
                   >
                     {item.label}
@@ -144,6 +168,30 @@ export default function Navbar() {
                       />
                     )}
                   </Link>
+
+                  {/* Dropdown menu */}
+                  {item.dropdown && dropdownOpen === item.label && (
+                    <motion.div
+                      className="absolute left-0 top-full mt-2 w-64 bg-white shadow-lg rounded-xl z-50 py-2"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                    >
+                      {item.dropdown.map((sub, i) => (
+                        <Link
+                          key={sub.path}
+                          href={sub.path}
+                          onClick={() => {
+                            handleNavClick(sub.path);
+                            setDropdownOpen(null);
+                          }}
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-[var(--color-maasai-red)]/10 hover:text-[var(--color-maasai-red)] rounded"
+                        >
+                          {sub.label}
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
                 </motion.div>
               ))}
             </div>
@@ -227,25 +275,76 @@ export default function Navbar() {
                         duration: 0.4,
                       }}
                     >
-                      <Link
-                        href={item.path}
-                        onClick={() => handleNavClick(item.path)}
-                        className={`block text-lg font-medium py-4 px-4 rounded-xl transition-all duration-300 relative overflow-hidden group ${
-                          activeItem === item.path
-                            ? "text-[var(--color-maasai-red)] bg-[var(--color-maasai-red)]/10 border-l-4 border-[var(--color-maasai-red)]"
-                            : "text-[var(--color-maasai-dark-grey)] hover:text-[var(--color-maasai-red)] hover:bg-[var(--color-maasai-red)]/5"
-                        }`}
-                      >
-                        {/* Hover effect */}
-                        <motion.div
-                          className="absolute inset-0 bg-[var(--color-maasai-red)]/5 rounded-xl"
-                          initial={{ scale: 0, opacity: 0 }}
-                          whileHover={{ scale: 1, opacity: 1 }}
-                          transition={{ duration: 0.2 }}
-                        />
-
-                        <span className="relative z-10">{item.label}</span>
-                      </Link>
+                      {item.dropdown ? (
+                        <div className="relative">
+                          <button
+                            className={`block w-full text-left text-lg font-medium py-4 px-4 rounded-xl transition-all duration-300 relative overflow-hidden group flex items-center justify-between ${
+                              activeItem === item.path
+                                ? "text-[var(--color-maasai-red)] bg-[var(--color-maasai-red)]/10 border-l-4 border-[var(--color-maasai-red)]"
+                                : "text-[var(--color-maasai-dark-grey)] hover:text-[var(--color-maasai-red)] hover:bg-[var(--color-maasai-red)]/5"
+                            }`}
+                            onClick={() =>
+                              setDropdownOpen(
+                                dropdownOpen === item.label ? null : item.label
+                              )
+                            }
+                          >
+                            <span className="relative z-10">{item.label}</span>
+                            <svg
+                              className={`ml-2 w-4 h-4 transition-transform duration-200 ${
+                                dropdownOpen === item.label ? "rotate-180" : ""
+                              }`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
+                          </button>
+                          {dropdownOpen === item.label && (
+                            <div className="pl-4 mt-1">
+                              {item.dropdown.map((sub) => (
+                                <Link
+                                  key={sub.path}
+                                  href={sub.path}
+                                  onClick={() => {
+                                    handleNavClick(sub.path);
+                                    setDropdownOpen(null);
+                                    setIsMobileMenu(false);
+                                  }}
+                                  className="block py-2 px-2 text-base rounded text-[var(--color-maasai-dark-grey)] hover:text-[var(--color-maasai-red)] hover:bg-[var(--color-maasai-red)]/10"
+                                >
+                                  {sub.label}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <Link
+                          href={item.path}
+                          onClick={() => handleNavClick(item.path)}
+                          className={`block text-lg font-medium py-4 px-4 rounded-xl transition-all duration-300 relative overflow-hidden group ${
+                            activeItem === item.path
+                              ? "text-[var(--color-maasai-red)] bg-[var(--color-maasai-red)]/10 border-l-4 border-[var(--color-maasai-red)]"
+                              : "text-[var(--color-maasai-dark-grey)] hover:text-[var(--color-maasai-red)] hover:bg-[var(--color-maasai-red)]/5"
+                          }`}
+                        >
+                          <motion.div
+                            className="absolute inset-0 bg-[var(--color-maasai-red)]/5 rounded-xl"
+                            initial={{ scale: 0, opacity: 0 }}
+                            whileHover={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.2 }}
+                          />
+                          <span className="relative z-10">{item.label}</span>
+                        </Link>
+                      )}
                     </motion.div>
                   ))}
                 </div>
