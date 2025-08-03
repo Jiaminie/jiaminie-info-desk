@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { motion, Variants } from "framer-motion";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import TextRotator from "@/components/common/TextRotator";
 import {
   Globe,
   ChartNoAxesCombined,
@@ -15,9 +14,19 @@ import {
   ArrowRight,
   Sparkles,
   Star,
+  Filter,
+  Search,
+  Clock,
+  DollarSign,
+  Users,
+  Zap,
+  Award,
+  Target,
 } from "lucide-react";
+import ErrorPage from "@/components/ui/error-page";
+import LoadingIndicator from "@/components/ui/LoadingIndicator";
+import StatCounter from "@/components/common/StatCounter";
 
-// Define a type for your Service data for better type safety
 interface Service {
   id: string;
   name: string;
@@ -42,37 +51,141 @@ interface Service {
   };
 }
 
-// Helper function to map icon names (strings from DB) to Lucide-React components
-const getIconComponent = (iconName: string | undefined) => {
-  switch (iconName) {
-    case "Globe":
-      return <Globe className="w-8 h-8" />;
-    case "MessageSquare":
-    case "MessageCircle":
-      return <MessageCircle className="w-8 h-8" />;
-    case "Code":
-      return <Code className="w-8 h-8" />;
-    case "Smartphone":
-      return <Smartphone className="w-8 h-8" />;
-    case "ChartNoAxesCombined":
-      return <ChartNoAxesCombined className="w-8 h-8" />;
-    case "Palette":
-      return <Palette className="w-8 h-8" />;
-    default:
-      return <Globe className="w-8 h-8" />;
-  }
+const ServiceCard = ({
+  service,
+  index,
+}: {
+  service: Service;
+  index: number;
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <motion.div
+      className="relative group h-[600px] rounded-2xl overflow-hidden cursor-pointer bg-gray-900 border border-gray-800"
+      initial={{ opacity: 0, y: 60 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.1 }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      whileHover={{ scale: 1.02, y: -5 }}
+    >
+      {/* Background Image or Gradient */}
+      <div className="absolute inset-0">
+        {service.image_url ? (
+          <img
+            src={service.image_url}
+            alt={service.name}
+            className="w-full h-2/5 object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+        ) : (
+          <div className="w-full h-2/5 bg-gradient-to-br from-red-600 via-red-700 to-red-900" />
+        )}
+        {/* Dark Overlay on Image */}
+        <div className="absolute inset-0 bg-black/60 group-hover:bg-black/40 transition-all duration-500" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 h-full flex flex-col">
+        {/* Header Section with Image */}
+        <div className="h-2/5 flex flex-col justify-between p-6">
+          {/* Icon and Featured Badge */}
+          <div className="flex justify-between items-start">
+            {service.is_featured && (
+              <Badge className="bg-red-600 text-white border-0 p-2">
+                <Star className="w-3 h-3 mr-1" />
+                Featured
+              </Badge>
+            )}
+          </div>
+
+          {/* Service Title */}
+          <h3 className="text-2xl font-bold text-white leading-tight">
+            {service.name}
+          </h3>
+        </div>
+
+        {/* Detail Section */}
+        <div className="h-3/5 bg-gray-900 p-6 space-y-4 flex flex-col justify-between">
+          {/* Description */}
+          <p className="text-gray-300 text-sm leading-relaxed flex-grow">
+            {service.description.length > 150
+              ? service.description.substring(0, 150) + "..."
+              : service.description}
+          </p>
+
+          {/* Key Features */}
+          <div className="space-y-3">
+            <h4 className="text-white font-semibold text-sm">Key Features:</h4>
+            <div className="space-y-1">
+              {service.features?.slice(0, 3).map((feature, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 text-xs text-gray-400"
+                >
+                  <div className="w-1 h-1 bg-red-500 rounded-full"></div>
+                  <span>{feature}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Technologies */}
+          <div className="flex flex-wrap gap-1">
+            {service.technologies?.slice(0, 4).map((tech, i) => (
+              <span
+                key={i}
+                className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded-md border border-gray-700"
+              >
+                {tech}
+              </span>
+            ))}
+          </div>
+
+          {/* Price and Duration */}
+          <div className="flex gap-3 text-xs">
+            <div className="flex items-center gap-1 text-green-400">
+              <DollarSign className="w-3 h-3" />
+              <span>{service.price_range || "Custom"}</span>
+            </div>
+            <div className="flex items-center gap-1 text-blue-400">
+              <Clock className="w-3 h-3" />
+              <span>{service.duration || "Flexible"}</span>
+            </div>
+          </div>
+
+          {/* Action Button */}
+          <motion.div
+            className="opacity-100 transition-all duration-300"
+            initial={{ y: 0 }}
+            animate={{ y: 0 }}
+          >
+            <Link href={`/services/${service.slug}`}>
+              <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-red-600/25 text-sm">
+                View Details
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </Link>
+          </motion.div>
+        </div>
+      </div>
+    </motion.div>
+  );
 };
 
-export default function ServicesOverview() {
+export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
+  const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [hoveredService, setHoveredService] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   useEffect(() => {
     const fetchAllServices = async () => {
       try {
-        const response = await fetch("/api/services");
+        const response = await fetch("/api/data/services");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -88,7 +201,7 @@ export default function ServicesOverview() {
               ? JSON.parse(service.technologies)
               : service.technologies,
         }));
-        // Sort services: featured first, then by sort_order
+
         const sortedData = parsedData.sort((a, b) => {
           if (a.is_featured && !b.is_featured) return -1;
           if (!a.is_featured && b.is_featured) return 1;
@@ -96,6 +209,7 @@ export default function ServicesOverview() {
         });
 
         setServices(sortedData);
+        setFilteredServices(sortedData);
       } catch (err) {
         console.error("Failed to fetch all services:", err);
         setError("Failed to load services. Please try again later.");
@@ -107,364 +221,213 @@ export default function ServicesOverview() {
     fetchAllServices();
   }, []);
 
-  // Variants for text reveal in hero
-  const heroTextRevealVariants: Variants = {
-    hidden: {
-      opacity: 0,
-      y: 30,
-    },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.8,
-        ease: "easeOut",
-      },
-    },
-  };
+  // Filter services based on search and category
+  useEffect(() => {
+    let filtered = services;
 
-  // Variants for hero container stagger
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-      },
-    },
-  };
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (service) =>
+          service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          service.description
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          service.technologies.some((tech) =>
+            tech.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+      );
+    }
 
-  const serviceItemVariants: Variants = {
-    hidden: {
-      opacity: 0,
-      y: 60,
-      scale: 0.95,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 15,
-        mass: 0.8,
-      },
-    },
-  };
+    if (selectedCategory !== "all") {
+      if (selectedCategory === "featured") {
+        filtered = filtered.filter((service) => service.is_featured);
+      }
+      // Add more category filters as needed
+    }
 
-  const floatingVariants: Variants = {
-    animate: {
-      y: [0, -10, 0],
-      transition: {
-        duration: 3,
-        repeat: Infinity,
-        ease: "easeInOut",
-      },
-    },
-  };
+    setFilteredServices(filtered);
+  }, [services, searchTerm, selectedCategory]);
 
   if (loading) {
-    return (
-      <section className="py-12 bg-gradient-to-br from-slate-50 to-white flex justify-center items-center h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[var(--color-maasai-red)] mx-auto mb-4"></div>
-          <p className="text-lg text-[var(--color-maasai-dark-grey)] font-medium">
-            Loading services...
-          </p>
-        </div>
-      </section>
-    );
+    return <LoadingIndicator message="Loading services..." />;
   }
 
   if (error) {
-    return (
-      <section className="py-12 bg-gradient-to-br from-red-50 to-white flex justify-center items-center h-screen">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-red-500 text-2xl">⚠</span>
-          </div>
-          <p className="text-lg text-red-600 font-medium">{error}</p>
-        </div>
-      </section>
-    );
+    return <ErrorPage message={error} />;
   }
 
+  const categories = [
+    { id: "all", name: "All Services", count: services.length },
+    {
+      id: "featured",
+      name: "Featured",
+      count: services.filter((s) => s.is_featured).length,
+    },
+  ];
+
   return (
-    <div className="backdrop-blur-md bg-black/80">
-      <section className="relative h-[60vh] md:h-[70vh] overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center p-4 z-10">
+    <div className="bg-black text-white min-h-screen">
+      {/* Header Section */}
+      <section className="relative bg-gradient-to-br from-gray-900 via-black to-red-900/20 py-20 px-6">
+        <div className="w-full h-[300px] md:h-[400px] relative z-10 mx-auto">
           <motion.div
-            className="text-center text-white max-w-4xl"
-            initial="hidden"
-            animate="visible"
-            variants={containerVariants}
+            className="text-center pt-8"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
           >
-                       <motion.h1
-              className="text-4xl md:text-6xl lg:text-7xl font-black mb-4 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent leading-tight"
-              variants={heroTextRevealVariants}
-            >
-              Our Core Services
-            </motion.h1>
+            <h1 className="text-5xl md:text-6xl font-light leading-tight mb-6">
+              Our <span className="text-red-600">Services</span>
+            </h1>
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+              Comprehensive digital solutions designed to transform your
+              business. From concept to deployment, we deliver excellence across
+              every touchpoint.
+            </p>
+          </motion.div>
 
-            <motion.p
-              className="text-lg md:text-xl max-w-3xl mx-auto mb-8 text-gray-200 leading-relaxed"
-              variants={heroTextRevealVariants}
-            >
-              We streamline business operations by assessing various parameters
-              and offering exceptional{" "}
-              <span className="text-[var(--color-maasai-accent)] font-semibold">
-                <TextRotator
-                  words={["solutions", "analysis", "results", "innovations"]}
-                />
-              </span>
-              .
-            </motion.p>
-
-            <motion.div
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-              variants={heroTextRevealVariants}
-            >
-              <Link href="/contact" passHref>
-                <motion.button
-                  className="px-8 py-3 bg-gradient-to-r from-[var(--color-maasai-red)] to-[var(--color-maasai-accent)] text-white font-bold rounded shadow-2xl transition-all duration-300 flex items-center gap-3 text-base"
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Request a Quote
-                  <ArrowRight className="w-5 h-5" />
-                </motion.button>
-              </Link>
-              <div className="flex items-center gap-2 text-gray-300">
-                <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span className="text-sm">Trusted by 500+ clients</span>
-              </div>
-            </motion.div>
+          {/* stats */}
+          <motion.div
+            className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-4"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            {[
+              { end: 6, label: "Services Available" },
+              { end: 4, label: "Expert Team" },
+              { end: 98, label: "Success Rate" },
+              { end: 8, label: "B2B served" },
+            ].map((stat, i) => (
+              <motion.div
+                key={i}
+                className="text-center p-6 shadow-xl hover:scale-105 transition-transform duration-300"
+                whileHover={{ scale: 1.08 }}
+              >
+                <StatCounter end={stat.end} label={stat.label} />
+              </motion.div>
+            ))}
           </motion.div>
         </div>
       </section>
 
-      {/* Services Section */}
-      <section className="py-12 md:py-16 bg-transparent relative overflow-hidden">
-        <div className="container mx-auto px-4 relative z-10">
-          <motion.div
-            className="text-center mb-12"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-            variants={containerVariants}
-          >
-            <motion.div
-              className="inline-flex items-center gap-2 bg-[var(--color-maasai-red)]/10 px-4 py-2 rounded mb-4"
-              variants={heroTextRevealVariants}
-            >
-              <div className="w-2 h-2 bg-[var(--color-maasai-red)] rounded animate-pulse"></div>
-              <span className="text-[var(--color-maasai-red)] font-semibold text-sm tracking-wide">
-                WHAT WE OFFER
-              </span>
-            </motion.div>
+      {/* Filter and Search Section */}
+      <section className="bg-gray-900/30 py-8 px-6 border-b border-gray-800">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
+            {/* Search */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search services, technologies..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-800/30 rounded-lg text-white placeholder-gray-400 focus:border-red-500 focus:outline-none"
+              />
+            </div>
 
-            <motion.h2
-              className="text-2xl md:text-3xl lg:text-4xl font-black text-white mb-4 leading-tight"
-              variants={heroTextRevealVariants}
-            >
-              Exceptional Solutions
-            </motion.h2>
-
-            <motion.p
-              className="text-base md:text-lg text-white/70 max-w-2xl mx-auto"
-              variants={heroTextRevealVariants}
-            >
-              Discover our comprehensive range of services designed to elevate
-              your business
-            </motion.p>
-          </motion.div>
-
-          <div className="space-y-6">
-            {services.length > 0 ? (
-              services.map((service, index) => (
-                <motion.div
-                  key={service.id}
-                  className={`group relative ${
-                    index % 2 === 0 ? "lg:flex-row" : "lg:flex-row-reverse"
-                  } flex flex-col lg:flex-row items-center gap-6 lg:gap-12 py-8 lg:py-10`}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.2 }}
-                  variants={serviceItemVariants}
-                  onHoverStart={() => setHoveredService(service.id)}
-                  onHoverEnd={() => setHoveredService(null)}
+            {/* Category Filter */}
+            <div className="flex gap-2">
+              {categories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`px-4 py-2 rounded font-medium transition-all ${
+                    selectedCategory === category.id
+                      ? "bg-red-600 hover:bg-red-700/30 text-white"
+                      : "bg-gray-800/30 text-gray-400 hover:bg-gray-700/30 hover:ring-gray-600 hover:ring-1"
+                  }`}
                 >
-                  {/* Service Visual */}
-                  <div className="lg:w-1/2 relative">
-                    <motion.div
-                      className="relative overflow-hidden bg-white rounded shadow-2xl"
-                      variants={floatingVariants}
-                      animate={hoveredService === service.id ? "animate" : ""}
-                    >
-                      {service.image_url ? (
-                        <div className="aspect-[4/3] w-full">
-                          <img
-                            src={service.image_url}
-                            alt={service.name}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
-                        </div>
-                      ) : (
-                        <div className="aspect-[4/3] w-full bg-gradient-to-br from-[var(--color-maasai-red)] to-[var(--color-maasai-accent)] flex items-center justify-center">
-                          <motion.div
-                            className="text-white opacity-20"
-                            animate={{ rotate: 360 }}
-                            transition={{
-                              duration: 20,
-                              repeat: Infinity,
-                              ease: "linear",
-                            }}
-                          >
-                            {getIconComponent(service.icon)}
-                          </motion.div>
-                        </div>
-                      )}
-
-                      {/* Floating icon */}
-                      <motion.div
-                        className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-[var(--color-maasai-red)] to-[var(--color-maasai-accent)] rounded flex items-center justify-center text-white shadow-xl"
-                        whileHover={{ scale: 1.1, rotate: 5 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                      >
-                        <div className="w-6 h-6">
-                          {getIconComponent(service.icon)}
-                        </div>
-                      </motion.div>
-                    </motion.div>
-                  </div>
-
-                  {/* Service Content */}
-                  <div className="lg:w-1/2 space-y-4">
-                    <div className="flex items-start gap-3">
-                      <h3 className="text-xl md:text-2xl lg:text-3xl font-black text-white mb-3 leading-tight">
-                        {service.name}
-                      </h3>
-
-                      <p className="text-base md:text-lg text-white/80 mb-4 leading-relaxed">
-                        {service.short_desc ||
-                          service.description.substring(0, 200) + "..."}
-                      </p>
-                    </div>
-
-                    {/* Service Details */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Price & Duration */}
-                      <div className="bg-white/80 backdrop-blur-sm p-4 rounded border border-gray-200/50 shadow-lg">
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-[var(--color-maasai-dark-grey)]/60 font-medium text-sm">
-                              Price Range
-                            </span>
-                            <span className="font-bold text-[var(--color-maasai-red)] text-base">
-                              {service.price_range || "Custom"}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-[var(--color-maasai-dark-grey)]/60 font-medium text-sm">
-                              Duration
-                            </span>
-                            <span className="font-bold text-[var(--color-maasai-dark-grey)] text-base">
-                              {service.duration || "Varies"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Technologies */}
-                      <div className="bg-white/80 backdrop-blur-sm p-4 rounded border border-gray-200/50 shadow-lg">
-                        <h4 className="font-semibold text-[var(--color-maasai-dark-grey)] mb-2 text-sm">
-                          Technologies
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {service.technologies &&
-                          service.technologies.length > 0 ? (
-                            service.technologies
-                              .slice(0, 3)
-                              .map((tech, techIndex) => (
-                                <Badge
-                                  key={techIndex}
-                                  className="bg-[var(--color-maasai-red)]/10 text-[var(--color-maasai-red)] border-0 hover:bg-[var(--color-maasai-red)] hover:text-white transition-all duration-200 text-xs"
-                                >
-                                  {tech}
-                                </Badge>
-                              ))
-                          ) : (
-                            <span className="text-[var(--color-maasai-dark-grey)]/60 text-xs">
-                              Various technologies
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Key Features */}
-                    {service.features && service.features.length > 0 && (
-                      <div className="bg-gradient-to-r from-[var(--color-maasai-red)]/5 to-[var(--color-maasai-accent)]/5 p-4 rounded-xl">
-                        <h4 className="font-semibold text-white mb-3 text-sm">
-                          Key Features
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {service.features
-                            .slice(0, 4)
-                            .map((feature, featureIndex) => (
-                              <div
-                                key={featureIndex}
-                                className="flex items-start gap-2"
-                              >
-                                <div className="w-2 h-2 bg-gradient-to-r from-[var(--color-maasai-red)] to-[var(--color-maasai-accent)] rounded mt-1.5 flex-shrink-0"></div>
-                                <span className="text-white/80 text-sm">
-                                  {feature}
-                                </span>
-                              </div>
-                            ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* CTA Button */}
-                    <div className="pt-3">
-                      <Link href={`/services/${service.slug}`} passHref>
-                        <motion.button
-                          className="group inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-[var(--color-maasai-red)] to-[var(--color-maasai-accent)] text-white font-bold rounded shadow-xl transition-all duration-300 text-base"
-                          whileHover={{ scale: 1.05, y: -2 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          Explore Service
-                          <motion.div
-                            className="transition-transform duration-300"
-                            animate={{
-                              x: hoveredService === service.id ? 5 : 0,
-                            }}
-                          >
-                            <ArrowRight className="w-4 h-4" />
-                          </motion.div>
-                        </motion.button>
-                      </Link>
-                    </div>
-                  </div>
-                </motion.div>
-              ))
-            ) : (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 rounded flex items-center justify-center mx-auto mb-4">
-                  <span className="text-gray-400 text-2xl">📋</span>
-                </div>
-                <h3 className="text-lg font-bold text-gray-500 mb-2">
-                  No Services Found
-                </h3>
-                <p className="text-gray-400 text-sm">
-                  We're working on adding amazing services for you.
-                </p>
-              </div>
-            )}
+                  {category.name} {category.count}
+                </button>
+              ))}
+            </div>
           </div>
+        </div>
+      </section>
+
+      {/* Services Grid Section */}
+      <section className="py-16 px-6">
+        <div className="max-w-7xl mx-auto">
+          {filteredServices.length === 0 ? (
+            <div className="text-center py-20">
+              <Search className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-gray-400 mb-2">
+                No services found
+              </h3>
+              <p className="text-gray-500">
+                Try adjusting your search terms or filters
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-3xl font-bold">
+                  {selectedCategory === "all"
+                    ? "All Services"
+                    : "Featured Services"}
+                  <span className="text-gray-500 text-2xl ml-2">
+                    {filteredServices.length}
+                  </span>
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredServices.map((service, index) => (
+                  <ServiceCard
+                    key={service.id}
+                    service={service}
+                    index={index}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section className="bg-gradient-to-r from-red-900/20 via-black to-red-900/20 py-20 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.h2
+            className="text-4xl md:text-5xl font-bold mb-6"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            Need a <span className="text-red-500">Custom Solution?</span>
+          </motion.h2>
+
+          <motion.p
+            className="text-xl mb-8 text-gray-300"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+          >
+            Don't see exactly what you're looking for? We specialize in creating
+            tailored solutions that fit your unique requirements.
+          </motion.p>
+
+          <motion.div
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.4 }}
+          >
+            <Link href="/contact">
+              <button className="px-8 py-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-all duration-300 hover:scale-105">
+                Discuss Your Project
+              </button>
+            </Link>
+            <Link href="/portfolio">
+              <button className="px-8 py-4 bg-transparent border-2 border-gray-600 hover:border-red-600 text-white font-semibold rounded-lg transition-all duration-300">
+                View Our Work
+              </button>
+            </Link>
+          </motion.div>
         </div>
       </section>
     </div>

@@ -77,7 +77,7 @@ export default function Navbar() {
 
   const handleNavClick = (path: string) => {
     setActiveItem(path);
-    setIsMobileMenu(false); // Close mobile menu on navigation
+    setIsMobileMenu(false);
   };
 
   return (
@@ -172,7 +172,7 @@ export default function Navbar() {
                   {/* Dropdown menu */}
                   {item.dropdown && dropdownOpen === item.label && (
                     <motion.div
-                      className="absolute left-0 top-full mt-2 w-64 bg-white shadow-lg rounded-xl z-50 py-2"
+                      className="absolute left-0 top-full mt-2 w-64 bg-red-950/90 ring-red-600/30 shadow-[0_0_20px_rgba(239,68,68,0.2)]ring-1 rounded-xl z-50 py-2"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 10 }}
@@ -185,7 +185,7 @@ export default function Navbar() {
                             handleNavClick(sub.path);
                             setDropdownOpen(null);
                           }}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-[var(--color-maasai-red)]/10 hover:text-[var(--color-maasai-red)] rounded"
+                          className="block px-4 py-2 text-sm text-gray-300 hover:bg-[var(--color-maasai-red)]/10 hover:text-[var(--color-maasai-red)] rounded"
                         >
                           {sub.label}
                         </Link>
@@ -250,7 +250,7 @@ export default function Navbar() {
                 </motion.span>
                 <motion.button
                   onClick={() => setIsMobileMenu(false)}
-                  className="p-2 rounded-xl text-[var(--color-maasai-dark-grey)] hover:text-[var(--color-maasai-red)] hover:bg-[var(--color-maasai-red)]/10 transition-all duration-200"
+                  className="p-2 rounded-xl text-white hover:text-[var(--color-maasai-red)] hover:bg-[var(--color-maasai-red)]/10 transition-all duration-200"
                   aria-label="Close mobile menu"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -278,10 +278,10 @@ export default function Navbar() {
                       {item.dropdown ? (
                         <div className="relative">
                           <button
-                            className={`block w-full text-left text-lg font-medium py-4 px-4 rounded-xl transition-all duration-300 relative overflow-hidden group flex items-center justify-between ${
+                            className={`w-full text-left text-lg font-medium py-4 px-4 rounded-xl transition-all duration-300 relative overflow-hidden group flex items-center justify-between ${
                               activeItem === item.path
-                                ? "text-[var(--color-maasai-red)] bg-[var(--color-maasai-red)]/10 border-l-4 border-[var(--color-maasai-red)]"
-                                : "text-[var(--color-maasai-dark-grey)] hover:text-[var(--color-maasai-red)] hover:bg-[var(--color-maasai-red)]/5"
+                                ? "text-[var(--color-maasai-red)] bg-[var(--color-maasai-red)]/10"
+                                : "text-white hover:text-[var(--color-maasai-red)] hover:bg-[var(--color-maasai-red)]/5"
                             }`}
                             onClick={() =>
                               setDropdownOpen(
@@ -318,7 +318,7 @@ export default function Navbar() {
                                     setDropdownOpen(null);
                                     setIsMobileMenu(false);
                                   }}
-                                  className="block py-2 px-2 text-base rounded text-[var(--color-maasai-dark-grey)] hover:text-[var(--color-maasai-red)] hover:bg-[var(--color-maasai-red)]/10"
+                                  className="block py-2 px-2 text-base rounded text-white hover:text-[var(--color-maasai-red)] hover:bg-[var(--color-maasai-red)]/10"
                                 >
                                   {sub.label}
                                 </Link>
@@ -332,8 +332,8 @@ export default function Navbar() {
                           onClick={() => handleNavClick(item.path)}
                           className={`block text-lg font-medium py-4 px-4 rounded-xl transition-all duration-300 relative overflow-hidden group ${
                             activeItem === item.path
-                              ? "text-[var(--color-maasai-red)] bg-[var(--color-maasai-red)]/10 border-l-4 border-[var(--color-maasai-red)]"
-                              : "text-[var(--color-maasai-dark-grey)] hover:text-[var(--color-maasai-red)] hover:bg-[var(--color-maasai-red)]/5"
+                              ? "text-[var(--color-maasai-red)] bg-[var(--color-maasai-red)]/10"
+                              : "text-white hover:text-[var(--color-maasai-red)] hover:bg-[var(--color-maasai-red)]/5"
                           }`}
                         >
                           <motion.div
@@ -356,8 +356,8 @@ export default function Navbar() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6 }}
                 >
-                  <p className="text-sm text-[var(--color-maasai-dark-grey)]/60 text-center">
-                    © 2024 Jiaminie.inc
+                  <p className="text-sm text-white/60 text-center">
+                    custom your software
                   </p>
                 </motion.div>
               </div>

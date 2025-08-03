@@ -1,4 +1,3 @@
-import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -17,7 +16,6 @@ export async function GET(req: Request) {
         name: true,
         slug: true,
         short_desc: true,
-        icon: true,
         price_range: true,
         duration: true,
         features: true,
@@ -28,13 +26,7 @@ export async function GET(req: Request) {
       },
     });
 
-    const responseData = featuredServices.map((service) => ({
-      ...service,
-      features: JSON.stringify(service.features),
-      technologies: JSON.stringify(service.technologies),
-    }));
-
-    return NextResponse.json(responseData, { status: 200 });
+    return NextResponse.json(featuredServices, { status: 200 });
   } catch (error: unknown) {
     if (error instanceof Error) {
       console.error("API Error fetching featured services:", error);

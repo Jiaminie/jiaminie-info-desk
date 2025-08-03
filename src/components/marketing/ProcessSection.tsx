@@ -1,357 +1,434 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion, Variants } from "framer-motion";
-import { Lightbulb, Layout, Code, Rocket, CheckCircle } from "lucide-react";
+import {
+  Target,
+  Palette,
+  Database,
+  Bug,
+  Cloud,
+  CheckCircle,
+  Award,
+  Users,
+  Layout,
+  Monitor,
+  Code,
+  Shield,
+  Rocket,
+  Zap,
+} from "lucide-react";
 
-interface Step {
+interface ProcessStep {
   id: number;
-  icon: React.ElementType;
   title: string;
+  subtitle: string;
   description: string;
+  detailedPoints: string[];
+  deliverables: string[];
+  duration: string;
   color: string;
   bgGradient: string;
+  imageUrl: string;
 }
 
-const steps: Step[] = [
+const processSteps: ProcessStep[] = [
   {
     id: 1,
-    icon: Lightbulb,
     title: "Discovery & Strategy",
+    subtitle: "Understanding Your Vision",
     description:
-      "We start by understanding your vision, goals, and target audience to craft a tailored digital strategy.",
-    color: "#E53935",
-    bgGradient: "from-red-500/20 via-red-400/10 to-transparent",
+      "We dive deep into your business goals, target audience, and market landscape to craft a comprehensive digital strategy that aligns with your objectives and drives measurable results.",
+    detailedPoints: [
+      "In-depth stakeholder interviews and requirements gathering",
+      "Comprehensive market research and competitor analysis",
+      "User persona development and journey mapping",
+      "Technical feasibility assessment and technology stack recommendation",
+      "Project scope definition and milestone planning",
+    ],
+    deliverables: [
+      "Project Requirements Document (PRD)",
+      "Technical Architecture Blueprint",
+      "User Persona Profiles",
+      "Competitive Analysis Report",
+      "Project Timeline & Milestones",
+    ],
+    duration: "1-2 weeks",
+    color: "#DC2626",
+    bgGradient: "from-red-600/20 via-red-500/10 to-transparent",
+    imageUrl:
+      "https://res.cloudinary.com/dq3wkbgts/image/upload/v1753885300/unsplash-city_aeqmxi.avif",
   },
   {
     id: 2,
-    icon: Layout,
     title: "Design & Prototyping",
+    subtitle: "Crafting Exceptional Experiences",
     description:
-      "Bringing your ideas to life with intuitive UI/UX design and interactive prototypes for early feedback.",
-    color: "#FF7043",
-    bgGradient: "from-orange-500/20 via-orange-400/10 to-transparent",
+      "Our design team creates intuitive, accessible, and visually stunning interfaces that not only look great but provide seamless user experiences across all devices and platforms.",
+    detailedPoints: [
+      "Information architecture and user flow optimization",
+      "High-fidelity wireframes and interactive prototypes",
+      "Brand-aligned visual design system creation",
+      "Responsive design for all screen sizes and devices",
+      "Accessibility compliance (WCAG 2.1 AA standards)",
+    ],
+    deliverables: [
+      "Interactive Prototypes (Figma/Adobe XD)",
+      "Design System & Style Guide",
+      "Responsive Design Mockups",
+      "User Flow Diagrams",
+      "Accessibility Audit Report",
+    ],
+    duration: "2-3 weeks",
+    color: "#DC2626",
+    bgGradient: "from-red-600/20 via-red-500/10 to-transparent",
+    imageUrl:
+      "https://res.cloudinary.com/dq3wkbgts/image/upload/v1751987789/maa-princess_nepjxk.jpg",
   },
   {
     id: 3,
-    icon: Code,
     title: "Development & Integration",
+    subtitle: "Building Robust Solutions",
     description:
-      "Our expert developers build robust, scalable, and secure solutions using cutting-edge technologies.",
-    color: "#2196F3",
-    bgGradient: "from-blue-500/20 via-blue-400/10 to-transparent",
+      "Our expert developers transform designs into powerful, scalable applications using cutting-edge technologies, best practices, and clean, maintainable code architecture.",
+    detailedPoints: [
+      "Clean, scalable code architecture using modern frameworks",
+      "API development and third-party service integrations",
+      "Database design and optimization for peak performance",
+      "Security implementation and data protection measures",
+      "Progressive web app features and offline functionality",
+    ],
+    deliverables: [
+      "Production-Ready Application",
+      "API Documentation",
+      "Database Schema & Migration Scripts",
+      "Security Implementation Report",
+      "Code Repository with Documentation",
+    ],
+    duration: "4-8 weeks",
+    color: "#DC2626",
+    bgGradient: "from-red-600/20 via-red-500/10 to-transparent",
+    imageUrl:
+      "https://res.cloudinary.com/dq3wkbgts/image/upload/v1735653360/cld-sample-2.jpg",
   },
   {
     id: 4,
-    icon: CheckCircle,
     title: "Testing & Quality Assurance",
+    subtitle: "Ensuring Excellence",
     description:
-      "Rigorous testing ensures your application is flawless, performs optimally, and delivers a seamless user experience.",
-    color: "#263238",
-    bgGradient: "from-gray-600/20 via-gray-500/10 to-transparent",
+      "Rigorous testing across multiple dimensions ensures your application performs flawlessly, meets all requirements, and delivers an exceptional user experience under all conditions.",
+    detailedPoints: [
+      "Automated unit, integration, and end-to-end testing",
+      "Cross-browser and device compatibility testing",
+      "Performance optimization and load testing",
+      "Security vulnerability assessment and penetration testing",
+      "User acceptance testing (UAT) with real user scenarios",
+    ],
+    deliverables: [
+      "Comprehensive Test Suite",
+      "Performance Optimization Report",
+      "Security Audit Results",
+      "Cross-Platform Compatibility Report",
+      "User Acceptance Testing Documentation",
+    ],
+    duration: "1-2 weeks",
+    color: "#DC2626",
+    bgGradient: "from-red-600/20 via-red-500/10 to-transparent",
+    imageUrl:
+      "https://res.cloudinary.com/dq3wkbgts/image/upload/v1735653360/samples/cup-on-a-table.jpg",
   },
   {
     id: 5,
-    icon: Rocket,
     title: "Deployment & Launch",
+    subtitle: "Going Live with Confidence",
     description:
-      "We handle the deployment process, ensuring a smooth and successful launch of your digital product.",
-    color: "#E53935",
-    bgGradient: "from-red-500/20 via-red-400/10 to-transparent",
+      "We handle the complete deployment process with zero-downtime strategies, comprehensive monitoring, and ongoing support to ensure a successful launch and optimal performance.",
+    detailedPoints: [
+      "Production environment setup and configuration",
+      "CI/CD pipeline implementation for seamless updates",
+      "Performance monitoring and analytics integration",
+      "SEO optimization and search engine submission",
+      "24/7 monitoring and alert system setup",
+    ],
+    deliverables: [
+      "Live Production Application",
+      "CI/CD Pipeline Configuration",
+      "Monitoring Dashboard Setup",
+      "SEO Optimization Report",
+      "Launch Support & Documentation",
+    ],
+    duration: "1 week",
+    color: "#DC2626",
+    bgGradient: "from-red-600/20 via-red-500/10 to-transparent",
+    imageUrl:
+      "https://res.cloudinary.com/dq3wkbgts/image/upload/v1735653360/samples/upscale-face-1.jpg",
   },
 ];
 
-const headerVariants: Variants = {
-  hidden: { opacity: 0, y: -30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
-};
-
-const stepVariants: Variants = {
-  hidden: { opacity: 0, x: -50 },
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    x: 0,
     transition: {
-      duration: 0.8,
-      ease: "easeOut",
+      staggerChildren: 0.2,
+      delayChildren: 0.1,
     },
   },
 };
 
-const iconVariants: Variants = {
-  hidden: { scale: 0, rotate: -180 },
+const headerVariants: Variants = {
+  hidden: { opacity: 0, y: -50 },
   visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+      damping: 10,
+    },
+  },
+};
+
+const cardVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 50,
+    scale: 0.95,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
     scale: 1,
-    rotate: 0,
     transition: {
       duration: 0.6,
       ease: "easeOut",
-      delay: 0.2,
     },
   },
 };
 
-export default function ProcessSection() {
+export default function DarkProcessSection() {
+  const [activeStep, setActiveStep] = useState<number | null>(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   return (
-    <section className="relative min-h-screen py-16 bg-gradient-to-br from-slate-50 via-white to-gray-50 text-[var(--color-maasai-dark-grey)] overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(15)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-3 h-3 bg-red-500/15"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
-            }}
-            animate={{
-              scale: [1, 1.5, 1],
-              opacity: [0.3, 0.8, 0.3],
-              rotate: [0, 180, 360],
-            }}
-            transition={{
-              duration: 4 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
-          />
-        ))}
+    <section className="relative min-h-screen w-full bg-black text-white overflow-hidden">
+      {/* Animated Grid Background */}
+      <div className="absolute inset-0 opacity-10">
+        <div
+          className="w-full h-full"
+          style={{
+            backgroundImage: `linear-gradient(rgba(255,0,0,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,0,0,0.1) 1px, transparent 1px)`,
+            backgroundSize: "120px 120px",
+          }}
+        ></div>
       </div>
 
-      <div className="container mx-auto px-6 relative z-10 min-w-screen">
+      {/* Subtle red gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-red-900/10 via-transparent to-red-900/5"></div>
+
+      <div className="container mx-auto px-6 py-16 relative z-10">
+        {/* Header Section */}
         <motion.div
-          className="text-center mb-16"
-          variants={headerVariants}
+          className="text-center mb-20"
           initial="hidden"
+          variants={headerVariants}
+          viewport={{ once: true }}
           whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
         >
           <motion.h2
-            className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-800 mb-8"
+            className="text-4xl md:text-5xl font-light leading-tight mb-4 text-white tracking-tight"
             initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
+            whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            Our{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-orange-500">
-              Process
-            </span>
+            Our Proven{" "}
+            <span className="text-red-600 block md:inline">Process</span>
           </motion.h2>
+
           <motion.div
-            className="w-32 h-1 bg-gradient-to-r from-red-500 to-orange-500 mx-auto mb-8"
+            className="w-32 h-1 bg-gradient-to-r from-red-600 to-red-500 mx-auto mb-8 rounded-full"
             initial={{ width: 0 }}
             whileInView={{ width: 128 }}
             transition={{ duration: 1, delay: 0.5 }}
           />
-          <p className="text-2xl md:text-3xl text-[var(--color-maasai-dark-grey)]/70 max-w-4xl mx-auto font-light">
-            From concept to launch, we guide you every step of the way.
-          </p>
+
+          <motion.p
+            className="text-xl md:text-2xl text-gray-300 max-w-6xl mx-auto leading-relaxed font-light"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+          >
+            We don't guess. We deliver{" "}
+            <span className="text-red-500 font-medium">premium software</span>{" "}
+            through a meticulously crafted process that ensures every project
+            exceeds expectations and drives business success.
+          </motion.p>
         </motion.div>
 
-        {/* Flowing Process Steps */}
-        <div className="relative max-w-7xl mx-auto">
-          {steps.map((step, index) => (
+        {/* Process Steps */}
+        <motion.div
+          className="max-w-7xl mx-auto space-y-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+        >
+          {processSteps.map((step, index) => (
             <motion.div
               key={step.id}
-              className={`relative mb-20 ${
-                index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
-              } flex flex-col md:flex items-center justify-center`}
-              variants={stepVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.3 }}
-              style={{ animationDelay: `${index * 0.2}s` }}
+              variants={cardVariants}
+              className="relative group"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.3 }}
             >
-              {/* Floating Connection Line */}
-              {index < steps.length - 1 && (
-                <motion.div
-                  className="absolute left-1/2 -bottom-10 w-0.5 h-10 bg-gradient-to-b from-red-500/50 to-transparent transform -translate-x-1/2 md:hidden"
-                  initial={{ height: 0 }}
-                  whileInView={{ height: 40 }}
-                  transition={{ duration: 0.8, delay: 0.5 }}
-                />
-              )}
-
-              {/* Icon Section */}
-              <motion.div
-                className="flex-shrink-0 relative group"
-                variants={iconVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
+              <div
+                className={`relative overflow-hidden border border-gray-800 hover:border-red-600/50 transition-all duration-500 cursor-pointer rounded-2xl bg-gray-900/50 backdrop-blur-sm group-hover:bg-gray-900/70 ${
+                  activeStep === step.id
+                    ? "ring-2 ring-red-500/50 border-red-500/50"
+                    : ""
+                }`}
+                onClick={() =>
+                  setActiveStep(activeStep === step.id ? null : step.id)
+                }
               >
-                {/* Morphing Background */}
-                <motion.div
-                  className="absolute -inset-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  style={{
-                    background: `radial-gradient(circle, ${step.color}20, transparent 70%)`,
-                  }}
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    rotate: [0, 360],
-                  }}
-                  transition={{
-                    duration: 8,
-                    repeat: Infinity,
-                    ease: "linear",
-                  }}
-                />
+                {/* Card Header */}
+                <div className="p-0">
+                  <div className="flex flex-col lg:flex-row h-full w-full">
+                    {/* Image Section */}
+                    <div className="relative w-full lg:w-1/3 min-h-[200px] lg:min-h-[300px] overflow-hidden">
+                      {/* Dark overlay */}
+                      <div className="absolute inset-0 bg-black/60 z-10" />
 
-                {/* Main Icon Container */}
-                <motion.div
-                  className="relative z-10 w-24 h-24 flex items-center justify-center"
-                  style={{
-                    background: `linear-gradient(135deg, ${step.color}15, ${step.color}30)`,
-                    clipPath:
-                      "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)",
-                  }}
-                  whileHover={{
-                    scale: 1.1,
-                    background: `linear-gradient(135deg, ${step.color}30, ${step.color}50)`,
-                  }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <step.icon
-                    className="w-12 h-12 z-10 relative"
-                    style={{ color: step.color }}
-                  />
-                </motion.div>
+                      <img
+                        src={step.imageUrl}
+                        alt={step.title}
+                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                      />
+                    </div>
 
-                {/* Step Number */}
-                <motion.div
-                  className="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-red-500 to-orange-500 text-white flex items-center justify-center text-sm font-bold"
-                  style={{
-                    clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
-                  }}
-                  initial={{ rotate: -45, scale: 0 }}
-                  whileInView={{ rotate: 0, scale: 1 }}
-                  transition={{ duration: 0.6, delay: 0.3 }}
-                >
-                  {step.id}
-                </motion.div>
-              </motion.div>
+                    {/* Content Section */}
+                    <div className="flex-1 lg:w-2/3 p-6 sm:p-8">
+                      <h3 className="text-3xl md:text-4xl font-light text-white mb-2 group-hover:text-red-500 transition-colors duration-300">
+                        {step.title}
+                      </h3>
+                      <p className="text-xl font-light text-red-400 mb-4">
+                        {step.subtitle}
+                      </p>
+                      <p className="text-gray-300 leading-relaxed text-lg font-light">
+                        {step.description}
+                      </p>
 
-              {/* Content Section */}
-              <motion.div
-                className={`flex-1 ${
-                  index % 2 === 0 ? "md:ml-16" : "md:mr-16"
-                } mt-8 md:mt-0 text-center md:text-left max-w-2xl`}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.4 }}
-              >
-                {/* Title with Dynamic Underline */}
-                <motion.h3
-                  className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent relative"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.5 }}
-                >
-                  {step.title}
-                  <motion.div
-                    className="absolute -bottom-2 left-0 md:left-0 h-0.5 bg-gradient-to-r from-red-500 to-orange-500"
-                    initial={{ width: 0 }}
-                    whileInView={{ width: "100%" }}
-                    transition={{ duration: 0.8, delay: 0.7 }}
-                  />
-                </motion.h3>
+                      {/* Duration badge */}
+                      <div className="mt-6 inline-flex items-center px-4 py-2 bg-red-600/20 border border-red-600/50 rounded-full text-red-400 text-sm font-medium">
+                        {step.duration}
+                      </div>
 
-                {/* Description */}
-                <motion.p
-                  className="text-gray-600 leading-relaxed text-lg font-light relative z-10"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.6 }}
-                >
-                  {step.description}
-                </motion.p>
-
-                {/* Decorative Elements */}
-                <motion.div
-                  className="absolute -top-4 -left-4 w-2 h-2 bg-red-500/30"
-                  style={{
-                    clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
-                  }}
-                  animate={{
-                    scale: [1, 1.5, 1],
-                    opacity: [0.3, 0.8, 0.3],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    delay: index * 0.3,
-                  }}
-                />
-              </motion.div>
-
-              {/* Connecting Flow Lines for Desktop */}
-              {index < steps.length - 1 && (
-                <motion.div
-                  className="hidden md:block absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  transition={{ duration: 1, delay: 0.8 }}
-                >
-                  <svg width="200" height="100" className="absolute top-16">
-                    <motion.path
-                      d={`M 0 0 Q 100 ${index % 2 === 0 ? "50" : "-50"} 200 0`}
-                      fill="none"
-                      stroke="url(#flowGradient)"
-                      strokeWidth="2"
-                      initial={{ pathLength: 0 }}
-                      whileInView={{ pathLength: 1 }}
-                      transition={{ duration: 1.5, delay: 0.9 }}
-                    />
-                    <defs>
-                      <linearGradient
-                        id="flowGradient"
-                        x1="0%"
-                        y1="0%"
-                        x2="100%"
-                        y2="0%"
+                      {/* Expand/Collapse Indicator */}
+                      <motion.div
+                        className="mt-6 flex items-center gap-2 text-red-500 font-medium cursor-pointer hover:text-red-400 transition-colors"
+                        whileHover={{ x: 5 }}
                       >
-                        <stop
-                          offset="0%"
-                          stopColor="#E53935"
-                          stopOpacity="0.3"
-                        />
-                        <stop
-                          offset="50%"
-                          stopColor="#FF7043"
-                          stopOpacity="0.6"
-                        />
-                        <stop
-                          offset="100%"
-                          stopColor="#2196F3"
-                          stopOpacity="0.3"
-                        />
-                      </linearGradient>
-                    </defs>
-                  </svg>
+                        <span className="text-lg">
+                          {activeStep === step.id
+                            ? "Show Less"
+                            : "Show Details"}
+                        </span>
+                        <motion.div
+                          animate={{ rotate: activeStep === step.id ? 180 : 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="text-xl"
+                        >
+                          ▼
+                        </motion.div>
+                      </motion.div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Expandable Content */}
+                <motion.div
+                  initial={false}
+                  animate={{
+                    height: activeStep === step.id ? "auto" : 0,
+                    opacity: activeStep === step.id ? 1 : 0,
+                  }}
+                  transition={{ duration: 0.4, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-0 pb-8 px-6 sm:px-8 border-t border-gray-800">
+                    <div className="grid md:grid-cols-2 gap-8 mt-8">
+                      {/* Detailed Points */}
+                      <div>
+                        <h4 className="text-xl font-light text-white mb-6 flex items-center gap-3">
+                          <CheckCircle className="w-6 h-6 text-red-500" />
+                          What We Do
+                        </h4>
+                        <ul className="space-y-4">
+                          {step.detailedPoints.map((point, i) => (
+                            <motion.li
+                              key={i}
+                              className="flex items-start gap-3 text-gray-300"
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ duration: 0.3, delay: i * 0.1 }}
+                            >
+                              <div className="w-2 h-2 bg-red-500 rounded-full mt-3 flex-shrink-0" />
+                              <span className="leading-relaxed">{point}</span>
+                            </motion.li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Deliverables */}
+                      <div>
+                        <h4 className="text-xl font-light text-white mb-6 flex items-center gap-3">
+                          <Award className="w-6 h-6 text-red-500" />
+                          Deliverables
+                        </h4>
+                        <ul className="space-y-4">
+                          {step.deliverables.map((deliverable, i) => (
+                            <motion.li
+                              key={i}
+                              className="flex items-start gap-3 text-gray-300"
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{
+                                duration: 0.3,
+                                delay: i * 0.1 + 0.2,
+                              }}
+                            >
+                              <div className="w-2 h-2 bg-red-500 rounded-full mt-3 flex-shrink-0" />
+                              <span className="font-medium leading-relaxed">
+                                {deliverable}
+                              </span>
+                            </motion.li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
                 </motion.div>
-              )}
+              </div>
             </motion.div>
           ))}
-        </div>
-
-        {/* Final Call to Action */}
-        <motion.div
-          className="text-center mt-16"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-        >
-          <motion.button
-            className="relative px-12 py-4 bg-gradient-to-r from-red-600 to-orange-500 text-white text-xl font-bold overflow-hidden group"
-            style={{
-              clipPath: "polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%)",
-            }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <motion.div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-600 transform translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
-            <span className="relative z-10">Start Your Journey</span>
-          </motion.button>
         </motion.div>
       </div>
     </section>

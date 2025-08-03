@@ -5,7 +5,6 @@ generator client {
 datasource db {
   provider          = "postgresql"
   url               = env("DATABASE_URL")
-  //directUrl         = env("DIRECT_URL")
 }
 
 model User {
@@ -18,17 +17,18 @@ model User {
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
   
+  projects      Project[]
   services      Service[]
   portfolio_items PortfolioItem[]
   blog_posts    BlogPost[]
   testimonials  Testimonial[]
   
   @@map("users")
+  TeamMember TeamMember[]
 }
 
 enum UserRole {
   ADMIN
-  EDITOR
   VIEWER
 }
 
@@ -37,13 +37,13 @@ model Service {
   name          String   
   slug          String    @unique
   description   String
+  icon          String?
   short_desc    String?   
-  icon          String?   
   image_url     String?  
-  price_range   String?   // e.g., "$500 - $2000"
-  duration      String?   // e.g., "2-4 weeks"
-  features      Json      // Array of feature strings
-  technologies  Json      // Array of tech stack used
+  price_range   String?
+  duration      String?
+  features      Json
+  technologies  Json
   is_featured   Boolean   @default(false)
   is_active     Boolean   @default(true)
   sort_order    Int       @default(0)
@@ -51,7 +51,6 @@ model Service {
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
   
-  // Relationships
   creator       User      @relation(fields: [created_by], references: [id])
   portfolio_items PortfolioItem[]
   inquiries     Inquiry[]
@@ -59,7 +58,6 @@ model Service {
   @@map("services")
 }
 
-// Portfolio/Case studies
 model PortfolioItem {
   id            String    @id @default(uuid())
   title         String
@@ -67,15 +65,14 @@ model PortfolioItem {
   description   String
   short_desc    String?
   client_name   String?
-  project_url   String?   // Live project URL
-  github_url    String?   // Repository URL
-  image_url     String?   // Main project image
-  gallery       Json?     // Array of image URLs
-  video_url     String?   // Demo video URL
-  technologies  Json      // Tech stack used
-  challenges    String?   // Challenges faced
-  solutions     String?   // Solutions implemented
-  results       String?   // Results achieved
+  project_url   String?
+  github_url    String?
+  image_url     String?
+  gallery       Json?
+  technologies  Json
+  challenges    String?
+  solutions     String?
+  results       String?
   service_id    String
   is_featured   Boolean   @default(false)
   is_active     Boolean   @default(true)
@@ -84,92 +81,91 @@ model PortfolioItem {
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
   
-  // Relationships
   service       Service   @relation(fields: [service_id], references: [id])
   creator       User      @relation(fields: [created_by], references: [id])
   
   @@map("portfolio_items")
 }
 
-// Customer testimonials
 model Testimonial {
   id            String    @id @default(uuid())
+  seed_identifier String    @unique
   client_name   String
-  client_title  String?   // e.g., "CEO", "Marketing Director"
+  client_title  String?
   client_company String?
   client_email  String?
-  client_photo  String?   // Client's photo URL
-  rating        Int       @default(5) // 1-5 stars
-  content       String    // Testimonial text
-  project_type  String?   // Type of project
+  client_photo  String?
+  rating        Int       @default(5)
+  content       String
+  project_type  String?
   is_featured   Boolean   @default(false)
   is_active     Boolean   @default(true)
-  is_verified   Boolean   @default(false) // For authenticity
+  is_verified   Boolean   @default(false)
   sort_order    Int       @default(0)
   created_by    String
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
   
-  // Relationships
   creator       User      @relation(fields: [created_by], references: [id])
   
   @@map("testimonials")
 }
 
-// Company showcase videos
-model Video {
-  id            String    @id @default(uuid())
-  title         String
-  description   String?
-  video_url     String    // YouTube, Vimeo, or Supabase Storage URL
-  thumbnail_url String?   // Video thumbnail
-  duration      String?   // e.g., "2:30"
-  category      VideoCategory
-  is_featured   Boolean   @default(false)
-  is_active     Boolean   @default(true)
-  view_count    Int       @default(0)
-  sort_order    Int       @default(0)
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
-  
-  @@map("videos")
-}
-
-enum VideoCategory {
-  COMPANY_INTRO
-  SERVICE_DEMO
-  CLIENT_TESTIMONIAL
-  BEHIND_SCENES
-  TUTORIAL
-}
-
-// Blog posts for SEO and thought leadership
 model BlogPost {
   id            String    @id @default(uuid())
   title         String
   slug          String    @unique
-  content       String    // Rich text content
-  excerpt       String?   // Short summary
+  content       String
+  excerpt       String?
   featured_image String?
-  meta_title    String?   // SEO meta title
-  meta_description String? // SEO meta description
-  tags          Json?     // Array of tags
+  meta_title    String?
+  meta_description String?
+  tags          Json?
   is_published  Boolean   @default(false)
   is_featured   Boolean   @default(false)
-  read_time     Int?      // Estimated read time in minutes
+  read_time     Int?
   view_count    Int       @default(0)
   published_at  DateTime?
   created_by    String
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
   
-  // Relationships
   author        User      @relation(fields: [created_by], references: [id])
   
   @@map("blog_posts")
 }
 
-// Client inquiries/contact form submissions
+
+model Project {
+  id               String    @id @default(uuid())
+  seed_identifier  String    @unique // Unique identifier for seeding/upserting
+  slug             String    @unique // URL-friendly unique identifier
+  title            String
+  description      String    // Detailed description for a project page
+  short_description String?  // Brief description for listings/cards
+  imageSrc         String    // Cloudinary URL for the main image
+  altText          String
+  category         String?   // e.g., "Web App", "Mobile App", "UI/UX"
+  technologies     String[]  // List of technologies used, e.g., ["React", "Node.js"]
+  client_name      String?   // Optional: Name of the client for this project
+  project_url      String?   // Optional: Link to the live project
+  github_url       String?   // Optional: Link to the GitHub repository
+
+  is_featured      Boolean   @default(false) // For showcasing on the homepage
+  is_active        Boolean   @default(true)  // To toggle visibility
+  sort_order       Int?      // For manual ordering in lists
+
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+
+  // Relationship to User for RLS/permissions
+  created_by       String?
+  creator          User?     @relation(fields: [created_by], references: [id])
+
+  @@index([slug]) // Add an index for faster lookups by slug
+  @@index([is_active, is_featured]) // Add an index for filtering by active/featured status
+}
+
 model Inquiry {
   id            String    @id @default(uuid())
   name          String
@@ -177,18 +173,17 @@ model Inquiry {
   phone         String?
   company       String?
   message       String
-  service_id    String?   // Service they're interested in
-  budget_range  String?   // Their budget range
-  timeline      String?   // Expected timeline
-  source        String?   // How they found us
+  service_id    String?
+  budget_range  String?
+  timeline      String?
+  source        String?
   status        InquiryStatus @default(NEW)
   priority      InquiryPriority @default(MEDIUM)
-  assigned_to   String?   // Admin user handling this
-  notes         String?   // Internal notes
+  assigned_to   String?
+  notes         String?
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
   
-  // Relationships
   service       Service?  @relation(fields: [service_id], references: [id])
   
   @@map("inquiries")
@@ -209,81 +204,24 @@ enum InquiryPriority {
   URGENT
 }
 
-// Company information and settings
-model CompanyInfo {
-  id            String    @id @default(uuid())
-  name          String
-  tagline       String?
-  description   String
-  logo_url      String?
-  email         String
-  phone         String?
-  address       String?
-  city          String?
-  country       String?
-  website       String?
-  social_links  Json?     // Object with social media URLs
-  business_hours Json?    // Operating hours
-  founded_year  Int?
-  team_size     String?   // e.g., "10-50 employees"
-  updated_at    DateTime  @updatedAt
-  
-  @@map("company_info")
-}
-
-// Team members
 model TeamMember {
-  id            String    @id @default(uuid())
-  name          String
-  title         String    // Job title
-  bio           String?
-  photo_url     String?
-  email         String?
-  linkedin_url  String?
-  github_url    String?
-  skills        Json?     // Array of skills
-  is_active     Boolean   @default(true)
-  sort_order    Int       @default(0)
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
-  
-  @@map("team_members")
-}
+  id              String   @id @default(uuid())
+  seed_identifier String   @unique // Unique identifier for seeding/upserting
+  name            String
+  role            String   // e.g., "Lead Developer", "UI/UX Designer"
+  bio             String?  // Short biography or professional summary
+  avatar_url      String?  // Cloudinary URL for profile picture
+  social_links    Json?    // e.g., { "linkedin": "...", "twitter": "..." }
 
-// FAQ section
-model FAQ {
-  id            String    @id @default(uuid())
-  question      String
-  answer        String
-  category      String?   // e.g., "General", "Services", "Pricing"
-  is_active     Boolean   @default(true)
-  sort_order    Int       @default(0)
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
-  
-  @@map("faqs")
-}
+  is_active       Boolean  @default(true) // To toggle visibility
+  sort_order      Int?     // For manual ordering in lists
 
-// Newsletter subscribers
-model Subscriber {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  name          String?
-  is_active     Boolean   @default(true)
-  subscribed_at DateTime  @default(now())
-  unsubscribed_at DateTime?
-  
-  @@map("subscribers")
-}
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
 
-// Analytics and metrics
-model Analytics {
-  id            String    @id @default(uuid())
-  page_path     String
-  visitor_count Int       @default(0)
-  unique_visitors Int     @default(0)
-  date          DateTime  @default(now())
-  
-  @@unique([page_path, date])
-  @@map("analytics")
+  // Relationship to User for RLS/permissions (optional, but good for admin control)
+  created_by      String?
+  creator         User?    @relation(fields: [created_by], references: [id])
+
+  @@index([is_active]) // Index for active status queries
 }
