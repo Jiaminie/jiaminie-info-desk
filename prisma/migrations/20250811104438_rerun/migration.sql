@@ -8,18 +8,18 @@ CREATE TYPE "InquiryStatus" AS ENUM ('NEW', 'IN_PROGRESS', 'PROPOSAL_SENT', 'CLO
 CREATE TYPE "InquiryPriority" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'URGENT');
 
 -- CreateTable
-CREATE TABLE "users" (
-    "id" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "name" TEXT,
-    "role" "UserRole" NOT NULL DEFAULT 'ADMIN',
-    "avatar_url" TEXT,
-    "is_active" BOOLEAN NOT NULL DEFAULT true,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+-- CREATE TABLE "users" (
+--     "id" TEXT NOT NULL,
+--     "email" TEXT NOT NULL,
+--     "name" TEXT,
+--     "role" "UserRole" NOT NULL DEFAULT 'ADMIN',
+--     "avatar_url" TEXT,
+--     "is_active" BOOLEAN NOT NULL DEFAULT true,
+--     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
-);
+--     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+-- );
 
 -- CreateTable
 CREATE TABLE "services" (

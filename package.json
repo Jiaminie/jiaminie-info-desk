@@ -8,8 +8,7 @@
     "lint": "next lint",
     "seed": "tsx prisma/seed.ts",
     "build": "prisma generate && next build",
-    "postinstall": "prisma generate",
-    "vercel-build": "prisma migrate deploy && prisma generate && next build"
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.11.1",
