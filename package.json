@@ -6,9 +6,9 @@
     "dev": "next dev --turbo",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate",
     "seed": "tsx prisma/seed.ts",
-    "build": "prisma generate && next build"
+    "build": "prisma generate && next build",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.11.1",
