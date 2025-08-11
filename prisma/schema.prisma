@@ -138,32 +138,33 @@ model BlogPost {
 
 model Project {
   id               String    @id @default(uuid())
-  seed_identifier  String    @unique // Unique identifier for seeding/upserting
-  slug             String    @unique // URL-friendly unique identifier
+  seed_identifier  String    @unique
+  slug             String    @unique
   title            String
-  description      String    // Detailed description for a project page
-  short_description String?  // Brief description for listings/cards
-  imageSrc         String    // Cloudinary URL for the main image
+  description      String
+  short_description String?
+  imageSrc         String
   altText          String
-  category         String?   // e.g., "Web App", "Mobile App", "UI/UX"
-  technologies     String[]  // List of technologies used, e.g., ["React", "Node.js"]
-  client_name      String?   // Optional: Name of the client for this project
-  project_url      String?   // Optional: Link to the live project
-  github_url       String?   // Optional: Link to the GitHub repository
+  category         String?
+  technologies     String[]
+  client_name      String?
+  project_url      String?
+  github_url       String?
 
-  is_featured      Boolean   @default(false) // For showcasing on the homepage
-  is_active        Boolean   @default(true)  // To toggle visibility
-  sort_order       Int?      // For manual ordering in lists
+  is_featured      Boolean   @default(false)
+  is_active        Boolean   @default(true)
+  sort_order       Int?
 
   created_at       DateTime  @default(now())
   updated_at       DateTime  @updatedAt
 
-  // Relationship to User for RLS/permissions
   created_by       String?
   creator          User?     @relation(fields: [created_by], references: [id])
 
-  @@index([slug]) // Add an index for faster lookups by slug
-  @@index([is_active, is_featured]) // Add an index for filtering by active/featured status
+  @@index([slug])
+  @@index([is_active, is_featured])
+
+  @@map("project")
 }
 
 model Inquiry {
@@ -206,22 +207,22 @@ enum InquiryPriority {
 
 model TeamMember {
   id              String   @id @default(uuid())
-  seed_identifier String   @unique // Unique identifier for seeding/upserting
+  seed_identifier String   @unique 
   name            String
-  role            String   // e.g., "Lead Developer", "UI/UX Designer"
-  bio             String?  // Short biography or professional summary
-  avatar_url      String?  // Cloudinary URL for profile picture
-  social_links    Json?    // e.g., { "linkedin": "...", "twitter": "..." }
+  role            String
+  bio             String?
+  avatar_url      String?
+  social_links    Json?
 
-  is_active       Boolean  @default(true) // To toggle visibility
-  sort_order      Int?     // For manual ordering in lists
+  is_active       Boolean  @default(true)
+  sort_order      Int?
 
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
 
-  // Relationship to User for RLS/permissions (optional, but good for admin control)
   created_by      String?
   creator         User?    @relation(fields: [created_by], references: [id])
 
-  @@index([is_active]) // Index for active status queries
+  @@index([is_active]) 
+  @@map("team_member")
 }

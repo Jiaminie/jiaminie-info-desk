@@ -269,7 +269,7 @@ export default function ServicesPage() {
     <div className="bg-black text-white min-h-screen">
       {/* Header Section */}
       <section className="relative bg-gradient-to-br from-gray-900 via-black to-red-900/20 py-20 px-6">
-        <div className="w-full h-[300px] md:h-[400px] relative z-10 mx-auto">
+        <div className="w-full min-h-[300px] md:min-h-[400px] relative z-10 mx-auto">
           <motion.div
             className="text-center pt-8"
             initial={{ opacity: 0, y: 30 }}
