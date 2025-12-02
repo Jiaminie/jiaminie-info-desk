@@ -3,28 +3,28 @@ generator client {
 }
 
 datasource db {
-  provider          = "postgresql"
-  url               = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id            String    @id @default(uuid()) 
-  email         String    @unique
-  name          String?
-  role          UserRole  @default(ADMIN)
-  avatar_url    String?
-  is_active     Boolean   @default(true)
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
-  
-  projects      Project[]
-  services      Service[]
+  id         String   @id @default(uuid())
+  email      String   @unique
+  name       String?
+  role       UserRole @default(ADMIN)
+  avatar_url String?
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  projects        Project[]
+  services        Service[]
   portfolio_items PortfolioItem[]
-  blog_posts    BlogPost[]
-  testimonials  Testimonial[]
-  
+  blog_posts      BlogPost[]
+  testimonials    Testimonial[]
+  TeamMember      TeamMember[]
+
   @@map("users")
-  TeamMember TeamMember[]
 }
 
 enum UserRole {
@@ -33,160 +33,158 @@ enum UserRole {
 }
 
 model Service {
-  id            String    @id @default(uuid())
-  name          String   
-  slug          String    @unique
-  description   String
-  icon          String?
-  short_desc    String?   
-  image_url     String?  
-  price_range   String?
-  duration      String?
-  features      Json
-  technologies  Json
-  is_featured   Boolean   @default(false)
-  is_active     Boolean   @default(true)
-  sort_order    Int       @default(0)
-  created_by    String
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
-  
-  creator       User      @relation(fields: [created_by], references: [id])
+  id           String   @id @default(uuid())
+  name         String
+  slug         String   @unique
+  description  String
+  icon         String?
+  short_desc   String?
+  image_url    String?
+  price_range  String?
+  duration     String?
+  features     Json
+  technologies Json
+  is_featured  Boolean  @default(false)
+  is_active    Boolean  @default(true)
+  sort_order   Int      @default(0)
+  created_by   String
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  creator         User            @relation(fields: [created_by], references: [id])
   portfolio_items PortfolioItem[]
-  inquiries     Inquiry[]
-  
+  inquiries       Inquiry[]
+
   @@map("services")
 }
 
 model PortfolioItem {
-  id            String    @id @default(uuid())
-  title         String
-  slug          String    @unique
-  description   String
-  short_desc    String?
-  client_name   String?
-  project_url   String?
-  github_url    String?
-  image_url     String?
-  gallery       Json?
-  technologies  Json
-  challenges    String?
-  solutions     String?
-  results       String?
-  service_id    String
-  is_featured   Boolean   @default(false)
-  is_active     Boolean   @default(true)
-  sort_order    Int       @default(0)
-  created_by    String
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
-  
-  service       Service   @relation(fields: [service_id], references: [id])
-  creator       User      @relation(fields: [created_by], references: [id])
-  
+  id           String   @id @default(uuid())
+  title        String
+  slug         String   @unique
+  description  String
+  short_desc   String?
+  client_name  String?
+  project_url  String?
+  github_url   String?
+  image_url    String?
+  gallery      Json?
+  technologies Json
+  challenges   String?
+  solutions    String?
+  results      String?
+  service_id   String
+  is_featured  Boolean  @default(false)
+  is_active    Boolean  @default(true)
+  sort_order   Int      @default(0)
+  created_by   String
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  service Service @relation(fields: [service_id], references: [id])
+  creator User    @relation(fields: [created_by], references: [id])
+
   @@map("portfolio_items")
 }
 
 model Testimonial {
-  id            String    @id @default(uuid())
-  seed_identifier String    @unique
-  client_name   String
-  client_title  String?
-  client_company String?
-  client_email  String?
-  client_photo  String?
-  rating        Int       @default(5)
-  content       String
-  project_type  String?
-  is_featured   Boolean   @default(false)
-  is_active     Boolean   @default(true)
-  is_verified   Boolean   @default(false)
-  sort_order    Int       @default(0)
-  created_by    String
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
-  
-  creator       User      @relation(fields: [created_by], references: [id])
-  
+  id              String   @id @default(uuid())
+  seed_identifier String   @unique
+  client_name     String
+  client_title    String?
+  client_company  String?
+  client_email    String?
+  client_photo    String?
+  rating          Int      @default(5)
+  content         String
+  project_type    String?
+  is_featured     Boolean  @default(false)
+  is_active       Boolean  @default(true)
+  is_verified     Boolean  @default(false)
+  sort_order      Int      @default(0)
+  created_by      String
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  creator User @relation(fields: [created_by], references: [id])
+
   @@map("testimonials")
 }
 
 model BlogPost {
-  id            String    @id @default(uuid())
-  title         String
-  slug          String    @unique
-  content       String
-  excerpt       String?
-  featured_image String?
-  meta_title    String?
-  meta_description String?
-  tags          Json?
-  is_published  Boolean   @default(false)
-  is_featured   Boolean   @default(false)
-  read_time     Int?
-  view_count    Int       @default(0)
-  published_at  DateTime?
-  created_by    String
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
-  
-  author        User      @relation(fields: [created_by], references: [id])
-  
-  @@map("blog_posts")
-}
-
-
-model Project {
   id               String    @id @default(uuid())
-  seed_identifier  String    @unique
-  slug             String    @unique
   title            String
-  description      String
-  short_description String?
-  imageSrc         String
-  altText          String
-  category         String?
-  technologies     String[]
-  client_name      String?
-  project_url      String?
-  github_url       String?
-
+  slug             String    @unique
+  content          String
+  excerpt          String?
+  featured_image   String?
+  meta_title       String?
+  meta_description String?
+  tags             Json?
+  is_published     Boolean   @default(false)
   is_featured      Boolean   @default(false)
-  is_active        Boolean   @default(true)
-  sort_order       Int?
-
+  read_time        Int?
+  view_count       Int       @default(0)
+  published_at     DateTime?
+  created_by       String
   created_at       DateTime  @default(now())
   updated_at       DateTime  @updatedAt
 
-  created_by       String?
-  creator          User?     @relation(fields: [created_by], references: [id])
+  author User @relation(fields: [created_by], references: [id])
+
+  @@map("blog_posts")
+}
+
+model Project {
+  id                String   @id @default(uuid())
+  seed_identifier   String   @unique
+  slug              String   @unique
+  title             String
+  description       String
+  short_description String?
+  imageSrc          String
+  altText           String
+  category          String?
+  technologies      String[]
+  client_name       String?
+  project_url       String?
+  github_url        String?
+
+  is_featured Boolean @default(false)
+  is_active   Boolean @default(true)
+  sort_order  Int?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  created_by String?
+  creator    User?   @relation(fields: [created_by], references: [id])
 
   @@index([slug])
   @@index([is_active, is_featured])
-
   @@map("project")
 }
 
 model Inquiry {
-  id            String    @id @default(uuid())
-  name          String
-  email         String
-  phone         String?
-  company       String?
-  message       String
-  service_id    String?
-  budget_range  String?
-  timeline      String?
-  source        String?
-  status        InquiryStatus @default(NEW)
-  priority      InquiryPriority @default(MEDIUM)
-  assigned_to   String?
-  notes         String?
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
-  
-  service       Service?  @relation(fields: [service_id], references: [id])
-  
+  id           String          @id @default(uuid())
+  name         String
+  email        String
+  phone        String?
+  company      String?
+  message      String
+  service_id   String?
+  budget_range String?
+  timeline     String?
+  source       String?
+  status       InquiryStatus   @default(NEW)
+  priority     InquiryPriority @default(MEDIUM)
+  assigned_to  String?
+  notes        String?
+  created_at   DateTime        @default(now())
+  updated_at   DateTime        @updatedAt
+
+  service Service? @relation(fields: [service_id], references: [id])
+
   @@map("inquiries")
 }
 
@@ -206,23 +204,158 @@ enum InquiryPriority {
 }
 
 model TeamMember {
-  id              String   @id @default(uuid())
-  seed_identifier String   @unique 
+  id              String  @id @default(uuid())
+  seed_identifier String  @unique
   name            String
   role            String
   bio             String?
   avatar_url      String?
   social_links    Json?
 
-  is_active       Boolean  @default(true)
-  sort_order      Int?
+  is_active  Boolean @default(true)
+  sort_order Int?
 
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
-  created_by      String?
-  creator         User?    @relation(fields: [created_by], references: [id])
+  created_by String?
+  creator    User?   @relation(fields: [created_by], references: [id])
 
-  @@index([is_active]) 
+  @@index([is_active])
   @@map("team_member")
+}
+
+model SocialMediaAccount {
+  id             String    @id @default(uuid())
+  platform       String // facebook, whatsapp, twitter, etc.
+  platformId     String // ID on the platform
+  name           String
+  accessToken    String?
+  refreshToken   String?
+  tokenExpiresAt DateTime?
+  metadata       Json? // Any other platform specific info
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  posts        SocialMediaPost[]
+  interactions SocialMediaInteraction[]
+  leads        SocialMediaLead[]
+
+  @@map("social_media_accounts")
+}
+
+model SocialMediaPost {
+  id             String     @id @default(uuid())
+  accountId      String
+  content        String
+  mediaUrls      String[]
+  status         PostStatus @default(DRAFT)
+  scheduledFor   DateTime?
+  publishedAt    DateTime?
+  platformPostId String?
+  metadata       Json?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  account      SocialMediaAccount       @relation(fields: [accountId], references: [id])
+  interactions SocialMediaInteraction[]
+
+  @@map("social_media_posts")
+}
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  FAILED
+}
+
+model SocialMediaInteraction {
+  id         String               @id @default(uuid())
+  accountId  String
+  postId     String? // If related to a specific post
+  type       InteractionType // MESSAGE, COMMENT, LIKE, REPLY
+  direction  InteractionDirection // INCOMING, OUTGOING
+  content    String?
+  fromUser   String? // Username or ID of the external user
+  fromUserId String? // Platform specific user ID
+  platformId String? // ID of the interaction on the platform
+  metadata   Json?
+  createdAt  DateTime             @default(now())
+
+  account SocialMediaAccount @relation(fields: [accountId], references: [id])
+  post    SocialMediaPost?   @relation(fields: [postId], references: [id])
+
+  @@map("social_media_interactions")
+}
+
+enum InteractionType {
+  MESSAGE
+  COMMENT
+  LIKE
+  REPLY
+  MENTION
+  OTHER
+}
+
+enum InteractionDirection {
+  INCOMING
+  OUTGOING
+}
+
+model SocialMediaLead {
+  id             String     @id @default(uuid())
+  accountId      String
+  platformUserId String
+  name           String?
+  profileUrl     String?
+  status         LeadStatus @default(NEW)
+  notes          String?
+  metadata       Json?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  account SocialMediaAccount @relation(fields: [accountId], references: [id])
+
+  @@map("social_media_leads")
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CONVERTED
+  CLOSED
+}
+
+model ScheduledEvent {
+  id          String      @id @default(uuid())
+  type        EventType
+  payload     Json // Data needed to execute the event
+  status      EventStatus @default(PENDING)
+  dueAt       DateTime
+  processedAt DateTime?
+  error       String?
+  retryCount  Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([status, dueAt])
+  @@map("scheduled_events")
+}
+
+enum EventType {
+  POST_PUBLISH
+  CHECK_MESSAGES
+  REMINDER
+  AGENT_TASK
+}
+
+enum EventStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
 }

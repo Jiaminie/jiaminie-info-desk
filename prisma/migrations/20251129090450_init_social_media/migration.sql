@@ -7,19 +7,37 @@ CREATE TYPE "InquiryStatus" AS ENUM ('NEW', 'IN_PROGRESS', 'PROPOSAL_SENT', 'CLO
 -- CreateEnum
 CREATE TYPE "InquiryPriority" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'URGENT');
 
--- CreateTable
--- CREATE TABLE "users" (
---     "id" TEXT NOT NULL,
---     "email" TEXT NOT NULL,
---     "name" TEXT,
---     "role" "UserRole" NOT NULL DEFAULT 'ADMIN',
---     "avatar_url" TEXT,
---     "is_active" BOOLEAN NOT NULL DEFAULT true,
---     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
---     "updated_at" TIMESTAMP(3) NOT NULL,
+-- CreateEnum
+CREATE TYPE "PostStatus" AS ENUM ('DRAFT', 'SCHEDULED', 'PUBLISHED', 'FAILED');
 
---     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
--- );
+-- CreateEnum
+CREATE TYPE "InteractionType" AS ENUM ('MESSAGE', 'COMMENT', 'LIKE', 'REPLY', 'MENTION', 'OTHER');
+
+-- CreateEnum
+CREATE TYPE "InteractionDirection" AS ENUM ('INCOMING', 'OUTGOING');
+
+-- CreateEnum
+CREATE TYPE "LeadStatus" AS ENUM ('NEW', 'CONTACTED', 'QUALIFIED', 'CONVERTED', 'CLOSED');
+
+-- CreateEnum
+CREATE TYPE "EventType" AS ENUM ('POST_PUBLISH', 'CHECK_MESSAGES', 'REMINDER', 'AGENT_TASK');
+
+-- CreateEnum
+CREATE TYPE "EventStatus" AS ENUM ('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED');
+
+-- CreateTable
+CREATE TABLE "users" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "name" TEXT,
+    "role" "UserRole" NOT NULL DEFAULT 'ADMIN',
+    "avatar_url" TEXT,
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "services" (
@@ -182,6 +200,89 @@ CREATE TABLE "team_member" (
     CONSTRAINT "team_member_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "social_media_accounts" (
+    "id" TEXT NOT NULL,
+    "platform" TEXT NOT NULL,
+    "platformId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "accessToken" TEXT,
+    "refreshToken" TEXT,
+    "tokenExpiresAt" TIMESTAMP(3),
+    "metadata" JSONB,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "social_media_accounts_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "social_media_posts" (
+    "id" TEXT NOT NULL,
+    "accountId" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "mediaUrls" TEXT[],
+    "status" "PostStatus" NOT NULL DEFAULT 'DRAFT',
+    "scheduledFor" TIMESTAMP(3),
+    "publishedAt" TIMESTAMP(3),
+    "platformPostId" TEXT,
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "social_media_posts_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "social_media_interactions" (
+    "id" TEXT NOT NULL,
+    "accountId" TEXT NOT NULL,
+    "postId" TEXT,
+    "type" "InteractionType" NOT NULL,
+    "direction" "InteractionDirection" NOT NULL,
+    "content" TEXT,
+    "fromUser" TEXT,
+    "fromUserId" TEXT,
+    "platformId" TEXT,
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "social_media_interactions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "social_media_leads" (
+    "id" TEXT NOT NULL,
+    "accountId" TEXT NOT NULL,
+    "platformUserId" TEXT NOT NULL,
+    "name" TEXT,
+    "profileUrl" TEXT,
+    "status" "LeadStatus" NOT NULL DEFAULT 'NEW',
+    "notes" TEXT,
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "social_media_leads_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "scheduled_events" (
+    "id" TEXT NOT NULL,
+    "type" "EventType" NOT NULL,
+    "payload" JSONB NOT NULL,
+    "status" "EventStatus" NOT NULL DEFAULT 'PENDING',
+    "dueAt" TIMESTAMP(3) NOT NULL,
+    "processedAt" TIMESTAMP(3),
+    "error" TEXT,
+    "retryCount" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "scheduled_events_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
@@ -215,6 +316,9 @@ CREATE UNIQUE INDEX "team_member_seed_identifier_key" ON "team_member"("seed_ide
 -- CreateIndex
 CREATE INDEX "team_member_is_active_idx" ON "team_member"("is_active");
 
+-- CreateIndex
+CREATE INDEX "scheduled_events_status_dueAt_idx" ON "scheduled_events"("status", "dueAt");
+
 -- AddForeignKey
 ALTER TABLE "services" ADD CONSTRAINT "services_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -238,3 +342,15 @@ ALTER TABLE "inquiries" ADD CONSTRAINT "inquiries_service_id_fkey" FOREIGN KEY (
 
 -- AddForeignKey
 ALTER TABLE "team_member" ADD CONSTRAINT "team_member_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "social_media_posts" ADD CONSTRAINT "social_media_posts_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "social_media_accounts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "social_media_interactions" ADD CONSTRAINT "social_media_interactions_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "social_media_accounts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "social_media_interactions" ADD CONSTRAINT "social_media_interactions_postId_fkey" FOREIGN KEY ("postId") REFERENCES "social_media_posts"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "social_media_leads" ADD CONSTRAINT "social_media_leads_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "social_media_accounts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

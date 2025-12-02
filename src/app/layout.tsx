@@ -16,10 +16,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <title>Info Desk</title>
+        <meta name="facebook-domain-verification" content="qwe2fweqlmq15p175w2hbgvewaqmtl" />
+      </head>
       <body>
-          <Navbar />
-          {children}
-          <Footer />
+        <Navbar />
+        {children}
+        <Footer />
       </body>
     </html>
   );
