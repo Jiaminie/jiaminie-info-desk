@@ -1,6 +1,7 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import { PrismaClient } from "@prisma/client";
+import { replyToFacebookComment } from "../services/facebook";
 
 const prisma = new PrismaClient();
 
@@ -45,23 +46,52 @@ export const replyToCommentTool = tool(
         return "Original interaction not found.";
       }
 
-      // 2. Create the reply interaction in DB
+
+
+// ... inside replyToCommentTool ...
+
+      const platformId = originalInteraction.platformId;
+      const accessToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
+
+      if (!platformId) {
+        return "Original interaction has no platform ID to reply to.";
+      }
+
+      if (!accessToken) {
+        return "FACEBOOK_PAGE_ACCESS_TOKEN is not configured.";
+      }
+
+      // 2. Call Facebook Graph API to send the reply via Service
+      let newPlatformId: string;
+      let responseData: any;
+
+      try {
+        const data = await replyToFacebookComment(platformId, content, accessToken);
+        newPlatformId = data.id || "";
+        if (!newPlatformId) {
+             throw new Error("Facebook API response missing ID");
+        }
+        responseData = data;
+      } catch (apiError) {
+        console.error("Facebook API Error:", apiError);
+        return `Failed to send reply to Facebook: ${apiError}`;
+      }
+
+      // 3. Create the reply interaction in DB
       const reply = await prisma.socialMediaInteraction.create({
         data: {
           accountId: originalInteraction.accountId,
           type: "REPLY",
           direction: "OUTGOING",
           content,
-          // In a real scenario, we would also call the platform API here to actually send the reply
-          // For now, we just record it. The worker might pick it up if we queue it.
-          // But usually, the agent action implies immediate execution or scheduling.
-          // Let's assume immediate execution for replies or queueing via a separate mechanism if needed.
-          // For this MVP, we just save it.
+          platformId: newPlatformId,
+          metadata: responseData,
         },
       });
 
-      return `Reply saved/sent: ${reply.id}`;
+      return `Reply sent and saved successfully: ${reply.id}`;
     } catch (error) {
+      console.error("Error in replyToCommentTool:", error);
       return `Failed to reply: ${error}`;
     }
   },
@@ -132,6 +162,48 @@ export const analyzeSentimentTool = tool(
     description: "Analyze the sentiment of a text.",
     schema: z.object({
       text: z.string().describe("The text to analyze"),
+    }),
+  }
+);
+
+export const getPostAnalyticsTool = tool(
+  async ({ limit = 5 }) => {
+    try {
+      const posts = await prisma.socialMediaPost.findMany({
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        include: {
+          interactions: true,
+        },
+      });
+
+      const analytics = posts.map((post) => {
+        const likes = post.interactions.filter((i) => i.type === "LIKE").length;
+        const comments = post.interactions.filter((i) => i.type === "COMMENT").length;
+        const shares = post.interactions.filter((i) => i.type === "OTHER" && i.metadata && (i.metadata as any).item === "share").length; // Example logic
+
+        return {
+          id: post.id,
+          content: post.content.substring(0, 50) + "...",
+          status: post.status,
+          publishedAt: post.publishedAt,
+          likes,
+          comments,
+          shares,
+          totalInteractions: post.interactions.length,
+        };
+      });
+
+      return JSON.stringify(analytics, null, 2);
+    } catch (error) {
+      return `Failed to fetch analytics: ${error}`;
+    }
+  },
+  {
+    name: "getPostAnalytics",
+    description: "Get performance analytics for recent posts (likes, comments, etc.).",
+    schema: z.object({
+      limit: z.number().optional().describe("Number of recent posts to analyze (default: 5)"),
     }),
   }
 );

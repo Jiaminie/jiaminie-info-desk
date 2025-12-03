@@ -80,7 +80,26 @@ export async function POST(req: NextRequest) {
 
 // --- Helper Functions ---
 
-async function handleMessage(accountId: string, senderPsid: string, webhookEvent: any) {
+async function ensureAccountExists(platformId: string, name: string = "Unknown Page") {
+  let account = await prisma.socialMediaAccount.findFirst({
+    where: { platformId: platformId, platform: "facebook" },
+  });
+
+  if (!account) {
+    console.log(`Creating new SocialMediaAccount for platformId: ${platformId}`);
+    account = await prisma.socialMediaAccount.create({
+      data: {
+        platform: "facebook",
+        platformId: platformId,
+        name: name,
+      },
+    });
+  }
+  return account.id;
+}
+
+async function handleMessage(platformAccountId: string, senderPsid: string, webhookEvent: any) {
+  const accountId = await ensureAccountExists(platformAccountId);
   const message = webhookEvent.message;
   
   // Save interaction
@@ -106,7 +125,8 @@ async function handleMessage(accountId: string, senderPsid: string, webhookEvent
   });
 }
 
-async function handlePostback(accountId: string, senderPsid: string, webhookEvent: any) {
+async function handlePostback(platformAccountId: string, senderPsid: string, webhookEvent: any) {
+  const accountId = await ensureAccountExists(platformAccountId);
   const payload = webhookEvent.postback.payload;
   const title = webhookEvent.postback.title;
 
@@ -132,7 +152,15 @@ async function handlePostback(accountId: string, senderPsid: string, webhookEven
   });
 }
 
-async function handleFeedEvent(accountId: string, value: any) {
+async function handleFeedEvent(platformAccountId: string, value: any) {
+  // 1. Ignore events from the page itself to prevent infinite loops
+  // We need to know the Page ID. 'platformAccountId' is the Page ID from the webhook entry.
+  if (value.from?.id === platformAccountId) {
+    console.log("Ignoring event from self (Page ID match):", platformAccountId);
+    return;
+  }
+
+  const accountId = await ensureAccountExists(platformAccountId, value.from?.name || "Facebook Page");
   const item = value.item; // 'post', 'comment', 'like'
   const verb = value.verb; // 'add', 'edit', 'remove'
 
@@ -153,11 +181,16 @@ async function handleFeedEvent(accountId: string, value: any) {
     console.log("Saved new page post:", value.post_id);
 
   } else if (item === "comment") {
+    // Try to find the internal post ID using the platform's post_id
+    const post = await prisma.socialMediaPost.findFirst({
+      where: { platformPostId: value.post_id }
+    });
+
     // New Comment on Post
     const interaction = await prisma.socialMediaInteraction.create({
       data: {
         accountId: accountId,
-        postId: value.post_id, // Might need to resolve internal Post ID if possible, or just store platform ID
+        postId: post ? post.id : undefined, // Only link if we found the internal post
         type: "COMMENT",
         direction: "INCOMING",
         content: value.message,
@@ -179,7 +212,8 @@ async function handleFeedEvent(accountId: string, value: any) {
   }
 }
 
-async function handleLeadgenEvent(accountId: string, value: any) {
+async function handleLeadgenEvent(platformAccountId: string, value: any) {
+  const accountId = await ensureAccountExists(platformAccountId);
   // Value contains leadgen_id, form_id, created_time
   // We usually need to fetch lead details from Graph API using leadgen_id
   // For now, we just save the notification
@@ -198,7 +232,8 @@ async function handleLeadgenEvent(accountId: string, value: any) {
   console.log("Saved new lead notification:", value.leadgen_id);
 }
 
-async function handleMentionEvent(accountId: string, value: any) {
+async function handleMentionEvent(platformAccountId: string, value: any) {
+  const accountId = await ensureAccountExists(platformAccountId);
   // Someone mentioned the page
   const interaction = await prisma.socialMediaInteraction.create({
     data: {

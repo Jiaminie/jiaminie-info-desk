@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  # Next.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jiaminie-app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - FACEBOOK_PAGE_ACCESS_TOKEN=${FACEBOOK_PAGE_ACCESS_TOKEN}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+    depends_on:
+      - worker
+
+  # Background Worker
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jiaminie-worker
+    restart: always
+    # Override command to run the worker script using tsx
+    command: [ "npx", "tsx", "src/worker/index.ts" ]
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - FACEBOOK_PAGE_ACCESS_TOKEN=${FACEBOOK_PAGE_ACCESS_TOKEN}

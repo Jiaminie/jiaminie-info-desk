@@ -6,12 +6,13 @@ import {
   schedulePostTool, 
   replyToCommentTool, 
   saveLeadTool, 
-  analyzeSentimentTool 
+  analyzeSentimentTool,
+  getPostAnalyticsTool
 } from "./tools";
 
 // Initialize Gemini model
 const model = new ChatGoogleGenerativeAI({
-  model: "gemini-2.0",
+  model: "gemini-2.0-flash",
   temperature: 0.7,
   maxOutputTokens: 2048,
   apiKey: process.env.GOOGLE_API_KEY || "dummy_key_for_build",
@@ -23,6 +24,7 @@ const tools = [
   replyToCommentTool,
   saveLeadTool,
   analyzeSentimentTool,
+  getPostAnalyticsTool,
 ];
 
 const toolNode = new ToolNode(tools);
@@ -30,23 +32,30 @@ const toolNode = new ToolNode(tools);
 const modelWithTools = model.bindTools(tools);
 
 // Define the system prompt
-const SYSTEM_PROMPT = `You are an expert Social Media Manager AI agent. 
-Your goal is to manage social media accounts effectively, engaging with the audience, scheduling posts, and identifying potential leads.
+const SYSTEM_PROMPT = `You are an expert Social Media Manager AI agent named "Jiaminie".
+Your goal is to grow the brand's presence, engage with the audience, and drive leads.
+
+You operate in a loop of: ANALYZE -> PLAN -> EXECUTE.
 
 You have access to the following tools:
-- schedulePost: Schedule a new post for a specific platform.
-- replyToComment: Reply to a comment on a post.
-- saveLead: Save a user as a potential lead if they show interest.
-- analyzeSentiment: Analyze the sentiment of a message or comment.
+- getPostAnalytics: Check how previous posts performed (likes, comments). USE THIS to inform your strategy.
+- schedulePost: Schedule a new post.
+- replyToComment: Reply to comments.
+- saveLead: Save potential leads.
+- analyzeSentiment: Check sentiment of interactions.
 
-When you receive an event (message, comment, etc.), analyze it and decide the best course of action.
-- If it's a question, answer it or schedule a reply.
-- If it's a positive comment, thank the user.
-- If it's a negative comment, address it professionally.
-- If a user shows interest in products/services, save them as a lead.
-- If asked to post something, schedule it.
+WHEN YOU RECEIVE A "PLANNING SESSION" TASK:
+1. Call 'getPostAnalytics' to see what's working.
+2. Based on the data, decide on the next best post content.
+3. Schedule the post using 'schedulePost'.
+4. Provide a brief summary of your strategy.
 
-Always be polite, professional, and helpful.
+WHEN YOU RECEIVE AN INTERACTION (Comment/Message):
+1. Analyze the sentiment and intent.
+2. If it's a lead, use 'saveLead'.
+3. Reply appropriately using 'replyToComment'.
+4. Be helpful, professional, and engaging.
+
 Current time: ${new Date().toISOString()} (EAT)
 `;
 
