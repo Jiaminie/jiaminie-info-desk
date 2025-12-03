@@ -33,42 +33,37 @@ export async function POST(req: NextRequest) {
 
     if (body.object === "page") {
       for (const entry of body.entry) {
-        const webhookEvent = entry.messaging[0];
-        console.log("Received event:", webhookEvent);
+        const accountId = entry.id; // Page ID
 
-        const senderPsid = webhookEvent.sender.id;
-        const message = webhookEvent.message;
+        // 1. Handle Messaging Events (Direct Messages)
+        if (entry.messaging) {
+          for (const webhookEvent of entry.messaging) {
+            console.log("Received messaging event:", webhookEvent);
+            const senderPsid = webhookEvent.sender.id;
 
-        if (message && message.text) {
-          // 1. Save interaction
-          const interaction = await prisma.socialMediaInteraction.create({
-            data: {
-              accountId: "facebook_account_id", // In real app, look up based on page ID or recipient ID
-              type: "MESSAGE",
-              direction: "INCOMING",
-              content: message.text,
-              fromUserId: senderPsid,
-              platformId: message.mid,
-              metadata: webhookEvent,
-            },
-          });
+            // Handle Text Messages
+            if (webhookEvent.message && webhookEvent.message.text) {
+              await handleMessage(accountId, senderPsid, webhookEvent);
+            } 
+            // Handle Postbacks (Button clicks)
+            else if (webhookEvent.postback) {
+              await handlePostback(accountId, senderPsid, webhookEvent);
+            }
+          }
+        }
 
-          // 2. Send to Agent
-          const result = await socialMediaAgent.invoke({
-            messages: [
-              new HumanMessage({
-                content: `Received message from user ${senderPsid}: "${message.text}". Interaction ID: ${interaction.id}. Please handle this.`,
-              }),
-            ],
-          });
-
-          // 3. Handle Agent Response (if any direct response is generated)
-          // The agent might have used tools to reply. If it returns a text message, we could send it here.
-          const lastMessage = result.messages[result.messages.length - 1];
-          if (lastMessage.content) {
-             // Logic to send reply back to Facebook via API would go here
-             // For now, we assume the agent uses the 'replyToComment' or similar tool which saves the reply intent
-             console.log("Agent response:", lastMessage.content);
+        // 2. Handle Feed Events (Posts, Comments, Likes)
+        if (entry.changes) {
+          for (const change of entry.changes) {
+            console.log("Received change event:", change.field, change.value);
+            
+            if (change.field === "feed") {
+              await handleFeedEvent(accountId, change.value);
+            } else if (change.field === "leadgen") {
+              await handleLeadgenEvent(accountId, change.value);
+            } else if (change.field === "mention") {
+              await handleMentionEvent(accountId, change.value);
+            }
           }
         }
       }
@@ -81,4 +76,149 @@ export async function POST(req: NextRequest) {
     console.error("Error processing webhook:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
+}
+
+// --- Helper Functions ---
+
+async function handleMessage(accountId: string, senderPsid: string, webhookEvent: any) {
+  const message = webhookEvent.message;
+  
+  // Save interaction
+  const interaction = await prisma.socialMediaInteraction.create({
+    data: {
+      accountId: accountId,
+      type: "MESSAGE",
+      direction: "INCOMING",
+      content: message.text,
+      fromUserId: senderPsid,
+      platformId: message.mid,
+      metadata: webhookEvent,
+    },
+  });
+
+  // Send to Agent
+  await socialMediaAgent.invoke({
+    messages: [
+      new HumanMessage({
+        content: `Received message from user ${senderPsid}: "${message.text}". Interaction ID: ${interaction.id}. Please handle this.`,
+      }),
+    ],
+  });
+}
+
+async function handlePostback(accountId: string, senderPsid: string, webhookEvent: any) {
+  const payload = webhookEvent.postback.payload;
+  const title = webhookEvent.postback.title;
+
+  // Save interaction
+  const interaction = await prisma.socialMediaInteraction.create({
+    data: {
+      accountId: accountId,
+      type: "OTHER", // Postback
+      direction: "INCOMING",
+      content: `[Postback] ${title} (${payload})`,
+      fromUserId: senderPsid,
+      metadata: webhookEvent,
+    },
+  });
+
+  // Send to Agent
+  await socialMediaAgent.invoke({
+    messages: [
+      new HumanMessage({
+        content: `User ${senderPsid} clicked button "${title}" (Payload: ${payload}). Interaction ID: ${interaction.id}. Please respond accordingly.`,
+      }),
+    ],
+  });
+}
+
+async function handleFeedEvent(accountId: string, value: any) {
+  const item = value.item; // 'post', 'comment', 'like'
+  const verb = value.verb; // 'add', 'edit', 'remove'
+
+  if (verb !== "add") return; // Only handle new items for now
+
+  if (item === "post") {
+    // New Post on Page
+    await prisma.socialMediaPost.create({
+      data: {
+        accountId: accountId,
+        content: value.message || "",
+        status: "PUBLISHED",
+        publishedAt: new Date(value.created_time * 1000),
+        platformPostId: value.post_id,
+        metadata: value,
+      },
+    });
+    console.log("Saved new page post:", value.post_id);
+
+  } else if (item === "comment") {
+    // New Comment on Post
+    const interaction = await prisma.socialMediaInteraction.create({
+      data: {
+        accountId: accountId,
+        postId: value.post_id, // Might need to resolve internal Post ID if possible, or just store platform ID
+        type: "COMMENT",
+        direction: "INCOMING",
+        content: value.message,
+        fromUserId: value.from.id,
+        fromUser: value.from.name,
+        platformId: value.comment_id,
+        metadata: value,
+      },
+    });
+
+    // Send to Agent
+    await socialMediaAgent.invoke({
+      messages: [
+        new HumanMessage({
+          content: `New comment from ${value.from.name} on post ${value.post_id}: "${value.message}". Interaction ID: ${interaction.id}. Should we reply?`,
+        }),
+      ],
+    });
+  }
+}
+
+async function handleLeadgenEvent(accountId: string, value: any) {
+  // Value contains leadgen_id, form_id, created_time
+  // We usually need to fetch lead details from Graph API using leadgen_id
+  // For now, we just save the notification
+  
+  await prisma.socialMediaLead.create({
+    data: {
+      accountId: accountId,
+      platformUserId: "unknown_yet", // Need API call to get user details
+      name: "New Lead",
+      notes: `Lead ID: ${value.leadgen_id}, Form ID: ${value.form_id}`,
+      metadata: value,
+      status: "NEW",
+    },
+  });
+  
+  console.log("Saved new lead notification:", value.leadgen_id);
+}
+
+async function handleMentionEvent(accountId: string, value: any) {
+  // Someone mentioned the page
+  const interaction = await prisma.socialMediaInteraction.create({
+    data: {
+      accountId: accountId,
+      type: "MENTION",
+      direction: "INCOMING",
+      content: value.message || "[Mention]",
+      fromUserId: value.sender_id,
+      fromUser: value.sender_name,
+      platformId: value.post_id,
+      metadata: value,
+    },
+  });
+
+  // Send to Agent
+  await socialMediaAgent.invoke({
+    messages: [
+      new HumanMessage({
+        content: `Page mentioned by ${value.sender_name}: "${value.message}". Interaction ID: ${interaction.id}.`,
+      }),
+    ],
+  });
 }
