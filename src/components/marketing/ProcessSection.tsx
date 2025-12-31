@@ -160,7 +160,7 @@ const processSteps: ProcessStep[] = [
     color: "#DC2626",
     bgGradient: "from-red-600/20 via-red-500/10 to-transparent",
     imageUrl:
-      "https://res.cloudinary.com/dq3wkbgts/image/upload/v1735653360/samples/upscale-face-1.jpg",
+      "/build.png",
   },
 ];
 

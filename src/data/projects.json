@@ -1,0 +1,30 @@
+[
+    {
+        "id": "1",
+        "imageSrc": "https://res.cloudinary.com/dq3wkbgts/image/upload/v1753970074/jiaminie_logo_transparent_rk48wz.png",
+        "altText": "JChats WhatsApp Automation",
+        "title": "JChats",
+        "description": "A dedicated solution for WhatsApp commerce and customer engagement automation. Seamlessly connects businesses with customers through intelligent chat flows, automated responses, and CRM integration."
+    },
+    {
+        "id": "2",
+        "imageSrc": "https://res.cloudinary.com/dq3wkbgts/image/upload/v1753971283/rongai-movers_mcvlde.png",
+        "altText": "Rongai Movers Website",
+        "title": "Rongai Movers",
+        "description": "Modern, responsive website for a logistics and moving company. Features booking system, quote calculator, and real-time tracking integration."
+    },
+    {
+        "id": "3",
+        "imageSrc": "https://res.cloudinary.com/dq3wkbgts/image/upload/v1753949267/waruiru_logo_vi0llw.png",
+        "altText": "Waruiru Platform",
+        "title": "Waruiru",
+        "description": "Full-stack web application with custom dashboard, analytics, and reporting features. Built with Next.js and PostgreSQL for optimal performance."
+    },
+    {
+        "id": "4",
+        "imageSrc": "https://res.cloudinary.com/dq3wkbgts/image/upload/v1751641327/logo_v51aad.png",
+        "altText": "Enterprise Solution",
+        "title": "Enterprise Dashboard",
+        "description": "Comprehensive business intelligence dashboard with real-time data visualization, automated reporting, and multi-tenant architecture."
+    }
+]
