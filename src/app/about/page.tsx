@@ -2,18 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, Variants } from "framer-motion";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Award,
-  TrendingUp,
   Users,
-  Sparkles,
   Code,
   Smartphone,
   Globe,
@@ -23,27 +12,7 @@ import {
   Heart,
   Lightbulb,
   Shield,
-  Clock,
 } from "lucide-react";
-import ErrorPage from "@/components/ui/error-page";
-import LoadingIndicator from "@/components/ui/LoadingIndicator";
-import Image from "next/image";
-
-interface TeamMember {
-  id: string;
-  name: string;
-  title: string;
-  bio?: string;
-  photo_url?: string;
-  email?: string;
-  linkedin_url?: string;
-  github_url?: string;
-  skills?: string[];
-  is_active: boolean;
-  sort_order: number;
-  created_at: string;
-  updated_at: string;
-}
 
 const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 50 },
@@ -64,9 +33,6 @@ const staggerContainer: Variants = {
 };
 
 export default function AboutSection() {
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -77,41 +43,6 @@ export default function AboutSection() {
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch("/api/data/team-members");
-        if (!res.ok) throw new Error("Failed to fetch team members");
-        const teamData = await res.json();
-
-        const parsedTeamData = teamData.map((member: TeamMember) => ({
-          ...member,
-          skills:
-            typeof member.skills === "string"
-              ? JSON.parse(member.skills)
-              : member.skills,
-        }));
-
-        setTeamMembers(parsedTeamData);
-      } catch (err: any) {
-        console.error("Failed to fetch data for About Section:", err);
-        setError(`Failed to load content: ${err.message}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  if (loading) {
-    return <LoadingIndicator message="This is us..." />;
-  }
-
-  if (error) {
-    return <ErrorPage message={error} />;
-  }
 
   const services = [
     {
@@ -242,18 +173,19 @@ export default function AboutSection() {
               </h2>
               <div className="space-y-6 text-lg text-gray-300 leading-relaxed">
                 <p>
-                  Founded in 2020, Jiaminie.inc emerged from a simple yet
-                  powerful vision: to bridge the gap between innovative ideas
-                  and tangible digital solutions. We set out to create more than
-                  just a software company—we built a digital transformation
-                  partner.
+                  Jiaminie Tech is a dynamic, Kenya-based automation and systems 
+                  integration company on a mission to build scalable digital 
+                  infrastructure for African businesses. We position ourselves as 
+                  the vital "automation layer" enabling SMEs and enterprises across 
+                  East Africa to overcome operational fragmentation.
                 </p>
                 <p>
-                  Our journey began with core web development, but we quickly
-                  evolved to encompass the full spectrum of digital solutions.
-                  From complex WhatsApp integrations to robust Next.js
-                  applications and comprehensive mobile solutions, we've grown
-                  alongside the technologies that shape our world.
+                  We address a critical market pain point: the significant time and 
+                  money lost by businesses due to manual processes and disconnected 
+                  systems. Jiaminie Tech distinguishes itself by developing solutions 
+                  tailored to local realities, with a deep, specialized understanding 
+                  of WhatsApp-centric commerce and communication patterns prevalent 
+                  in the region.
                 </p>
                 <p>
                   Today, we stand as a testament to the power of innovation,
@@ -399,73 +331,8 @@ export default function AboutSection() {
         </div>
       </section>
 
-      {/* Team Section - Keeping your beloved design intact */}
-      {teamMembers.length > 0 && (
-        <section className="py-24 px-6 bg-gray-950">
-          <div className="max-w-6xl mx-auto">
-            <motion.div
-              className="text-center mb-16"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.3 }}
-              variants={fadeInUp}
-            >
-              <h2 className="text-5xl font-bold mb-6">
-                Meet Our <span className="text-red-600">Team</span>
-              </h2>
-              <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-                Our diverse team of passionate experts is the heart of
-                Jiaminie.inc, bringing creativity and technical prowess to every
-                project.
-              </p>
-            </motion.div>
-
-            <motion.div
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.3 }}
-              variants={staggerContainer}
-            >
-              {teamMembers.slice(0, 3).map((member, index) => (
-                <motion.div key={member.id} variants={fadeInUp}>
-                  <Card className="relative group bg-transparent border-0 shadow-none text-center mb-4">
-                    <div className="overflow-hidden rounded-xl">
-                      <Image
-                        alt={member.name}
-                        src={
-                          member.photo_url
-                            ? member.photo_url.replace(
-                                "/upload/",
-                                "/upload/c_fill,g_face,w_400,h_400/"
-                              )
-                            : "/https://res.cloudinary.com/dq3wkbgts/image/upload/v1735653360/cld-sample.jpg"
-                        }
-                        width={400}
-                        height={400}
-                        className="w-full h-[300px] object-cover rounded-xl transition-all group-hover:scale-105"
-                      />
-                    </div>
-
-                    {/* Pull-out card */}
-                    <div className="absolute bottom-[-1.5rem] left-1/2 transform -translate-x-1/2 bg-gray-950/30 border-red-600/50 border-1 rounded-xl shadow-lg py-3 px-5 w-[85%]">
-                      <h3 className="text-base font-semibold text-red-400 mb-2 leading-tight">
-                        {member.name}
-                      </h3>
-                      <p className="text-sm text-red-600 font-medium">
-                        {member.title}
-                      </p>
-                    </div>
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-      )}
-
       {/* Mission & Vision Section */}
-      <section className="py-24 px-6 bg-black">
+      <section className="py-24 px-6 bg-gray-950">
         <div className="max-w-6xl mx-auto">
           <motion.div
             className="grid lg:grid-cols-2 gap-16 items-center"
@@ -482,9 +349,9 @@ export default function AboutSection() {
                     <h3 className="text-3xl font-bold">Our Mission</h3>
                   </div>
                   <p className="text-lg text-gray-300 leading-relaxed">
-                    To empower businesses through innovative digital solutions,
-                    bridging the gap between vision and reality with
-                    cutting-edge technology and unparalleled expertise.
+                    To simplify complex operations by connecting systems, 
+                    automating workflows, and enabling businesses to focus on 
+                    growth instead of manual processes.
                   </p>
                 </div>
 
@@ -494,9 +361,9 @@ export default function AboutSection() {
                     <h3 className="text-3xl font-bold">Our Vision</h3>
                   </div>
                   <p className="text-lg text-gray-300 leading-relaxed">
-                    To be the leading force in digital transformation, creating
-                    a future where technology seamlessly enhances human
-                    potential and drives sustainable growth.
+                    To become East Africa's leading automation layer for SMEs 
+                    and enterprises, empowering them to operate faster, smarter, 
+                    and at scale through intelligent integrations.
                   </p>
                 </div>
               </div>

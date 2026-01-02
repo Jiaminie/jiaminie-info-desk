@@ -9,9 +9,6 @@ import {
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import LoadingIndicator from "@/components/ui/LoadingIndicator";
-import ErrorPage from "@/components/ui/error-page";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   AlertDialogHeader,
   AlertDialogFooter,
@@ -25,6 +22,9 @@ import {
   AlertDialogDescription,
   AlertDialogCancel,
 } from "@radix-ui/react-alert-dialog";
+
+// Static project data
+import projectsData from "@/data/projects.json";
 
 interface ProjectImageProps {
   id: string;
@@ -324,13 +324,13 @@ const FounderSection = () => {
             Meet the Visionaries
           </h2>
           <p className="text-lg text-gray-300 leading-relaxed">
-            Our founders didn’t just build a business—they sparked a movement.
+            Our founders didn't just build a business—they sparked a movement.
             Driven by purpose, powered by passion, and guided by timeless
             values, their vision reshapes how we think, live, and thrive.
           </p>
           <blockquote className="italic text-gray-400 border-l-4 border-gray-700 pl-4">
-            “We are not building for today—we are chiseling a legacy for
-            tomorrow.”
+            "We are not building for today—we are chiseling a legacy for
+            tomorrow."
           </blockquote>
           <div className="text-sm text-gray-500">— The Founders</div>
         </div>
@@ -349,42 +349,14 @@ const FounderSection = () => {
     </motion.section>
   );
 };
+
 const JiaminiePortfolio = () => {
-  const [projects, setProjects] = useState<ProjectData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [projectImages, setProjectImages] = useState<string[]>([]);
+  // Use static data directly
+  const projects: ProjectData[] = projectsData;
+  const projectImages = projects.map((project) => project.imageSrc).filter(Boolean);
 
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [scrollY, setScrollY] = useState(0);
-
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const res = await fetch("/api/data/projects");
-        if (!res.ok) throw new Error("Failed to fetch projects");
-        const data = await res.json();
-
-        if (!Array.isArray(data)) {
-          throw new Error("Expected array but got: " + typeof data);
-        }
-
-        setProjects(data);
-
-        const imageUrls = data
-          .map((project) => project.imageSrc)
-          .filter(Boolean);
-
-        setProjectImages(imageUrls);
-      } catch (error: any) {
-        console.error("Failed to fetch projects:", error);
-        setError(error.message || "Failed to fetch projects");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProjects();
-  }, []);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -403,14 +375,6 @@ const JiaminiePortfolio = () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
-
-  if (loading) {
-    return <LoadingIndicator message="Loading.." />;
-  }
-
-  if (error) {
-    return <ErrorPage message={error} />;
-  }
 
   return (
     <div className="bg-black text-white overflow-x-hidden">
@@ -504,7 +468,7 @@ const JiaminiePortfolio = () => {
       <section className="w-full bg-black text-white py-24 px-6 flex items-center justify-center">
         <div className="max-w-3xl text-center space-y-6">
           <p className="text-xl md:text-2xl italic text-gray-300 animate-fade-in">
-            “Every great move begins with a bold step into the unknown...”
+            "Every great move begins with a bold step into the unknown..."
           </p>
           <span className="block h-1 w-20 bg-orange-500 mx-auto rounded-full"></span>
           <p className="text-md text-gray-500">Are you ready for the leap?</p>

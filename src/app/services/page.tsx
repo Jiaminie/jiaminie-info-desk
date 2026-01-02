@@ -22,10 +22,12 @@ import {
   Zap,
   Award,
   Target,
+  BarChart3,
 } from "lucide-react";
-import ErrorPage from "@/components/ui/error-page";
-import LoadingIndicator from "@/components/ui/LoadingIndicator";
 import StatCounter from "@/components/common/StatCounter";
+
+// Static services data
+import servicesData from "@/data/services.json";
 
 interface Service {
   id: string;
@@ -34,7 +36,7 @@ interface Service {
   description: string;
   short_desc?: string;
   icon?: string;
-  image_url?: string;
+  image_url?: string | null;
   price_range?: string;
   duration?: string;
   features: string[];
@@ -42,14 +44,28 @@ interface Service {
   is_featured: boolean;
   is_active: boolean;
   sort_order: number;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  creator?: {
-    name: string;
-    email: string;
-  };
 }
+
+const getIconComponent = (iconName: string) => {
+  const iconProps = { className: "w-8 h-8" };
+  switch (iconName) {
+    case "Globe":
+      return <Globe {...iconProps} />;
+    case "MessageCircle":
+      return <MessageCircle {...iconProps} />;
+    case "Code":
+      return <Code {...iconProps} />;
+    case "Smartphone":
+      return <Smartphone {...iconProps} />;
+    case "ChartNoAxesCombined":
+    case "BarChart3":
+      return <BarChart3 {...iconProps} />;
+    case "Palette":
+      return <Palette {...iconProps} />;
+    default:
+      return <Globe {...iconProps} />;
+  }
+};
 
 const ServiceCard = ({
   service,
@@ -175,51 +191,21 @@ const ServiceCard = ({
 };
 
 export default function ServicesPage() {
-  const [services, setServices] = useState<Service[]>([]);
-  const [filteredServices, setFilteredServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Use static data directly
+  const allServices: Service[] = servicesData as Service[];
+  
+  // Sort: featured first, then by sort_order
+  const services = [...allServices]
+    .filter((s) => s.is_active)
+    .sort((a, b) => {
+      if (a.is_featured && !b.is_featured) return -1;
+      if (!a.is_featured && b.is_featured) return 1;
+      return a.sort_order - b.sort_order;
+    });
+
+  const [filteredServices, setFilteredServices] = useState<Service[]>(services);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-
-  useEffect(() => {
-    const fetchAllServices = async () => {
-      try {
-        const response = await fetch("/api/data/services");
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data: Service[] = await response.json();
-        const parsedData = data.map((service) => ({
-          ...service,
-          features:
-            typeof service.features === "string"
-              ? JSON.parse(service.features)
-              : service.features,
-          technologies:
-            typeof service.technologies === "string"
-              ? JSON.parse(service.technologies)
-              : service.technologies,
-        }));
-
-        const sortedData = parsedData.sort((a, b) => {
-          if (a.is_featured && !b.is_featured) return -1;
-          if (!a.is_featured && b.is_featured) return 1;
-          return a.sort_order - b.sort_order;
-        });
-
-        setServices(sortedData);
-        setFilteredServices(sortedData);
-      } catch (err) {
-        console.error("Failed to fetch all services:", err);
-        setError("Failed to load services. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAllServices();
-  }, []);
 
   // Filter services based on search and category
   useEffect(() => {
@@ -246,15 +232,7 @@ export default function ServicesPage() {
     }
 
     setFilteredServices(filtered);
-  }, [services, searchTerm, selectedCategory]);
-
-  if (loading) {
-    return <LoadingIndicator message="Loading services..." />;
-  }
-
-  if (error) {
-    return <ErrorPage message={error} />;
-  }
+  }, [searchTerm, selectedCategory]);
 
   const categories = [
     { id: "all", name: "All Services", count: services.length },
